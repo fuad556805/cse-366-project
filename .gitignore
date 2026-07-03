@@ -1,0 +1,23 @@
+# Runtime data
+data/uploads/
+data/database.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python env
+.env
+.venv/
+venv/
+*.egg-info/
+
+# Replit internal
+.replit.backup
+.pythonlibs/
+.cache/
+attached_assets/
+
+# OS
+.DS_Store
+Thumbs.db

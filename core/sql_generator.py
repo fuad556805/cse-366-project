@@ -7,25 +7,24 @@ tarpor sheta theke asol SQL query string toiri kora.
 
 Internal query representation:
 {
-    "intent": "SELECT",
-    "filters": [
-        {"column": "Gender",   "operator": "=",       "value": "Female"},
-        {"column": "Age",      "operator": ">",        "value": "30"},
-        {"column": "Score",    "operator": "BETWEEN",  "value": "5", "value2": "9"},
-        {"column": "Notes",    "operator": "IS NULL"},
+    "intent":    "SELECT",
+    "filters":   [
+        {"column": "Gender",  "operator": "=",        "value": "Female"},
+        {"column": "Age",     "operator": ">",         "value": "30"},
+        {"column": "Score",   "operator": "BETWEEN",   "value": "5", "value2": "9"},
     ],
-    "agg_column": None
+    "agg_column": None,        # AVG/MAX/MIN/SUM er jonno column
+    "group_by":   None,        # "average salary by department" -> "Department"
+    "order_by":   None,        # "top 10 salary" -> "Salary"
+    "order_dir":  "DESC",      # "DESC" ba "ASC"
+    "limit":      None,        # top N -> N
 }
 
-Bug fixes (v2):
-- Identifiers (column names, table name) ekhon double-quote diye quote
-  kora hoy, jate multi-word column names ("First Name") valid SQL produce kore.
-- Operator support align kora hoise: BETWEEN (2 number), IS NULL/IS NOT NULL
-  (no value), LIKE (text value), simple binary ops — shob-i properly handled.
-- build_query ekhon operator-centric: protyek detected operator-er upor
-  iterate kore numbers / columns khoje, na number-centric.
-- Duplicate function get_numeric_columns removed — schema_reader theke import.
-- Filter deduplication: same column ekbar-er beshi filter-e thakbe na.
+New features (v3):
+- GROUP BY support: "average salary by department"
+- ORDER BY + LIMIT: "top 10 highest salary", "lowest 5 prices"
+- Underscore <-> space column matching (via improved attribute_matcher)
+- Expanded synonym + operator dictionaries
 """
 
 import re
@@ -36,55 +35,54 @@ from value_matcher import extract_numbers, match_categorical_values
 from schema_reader import get_numeric_columns
 
 
-# Aggregate intent gula
+# ── Constants ────────────────────────────────────────────────────────────────
+
 _AGGREGATE_INTENTS = {"AVG", "MAX", "MIN", "SUM"}
 
-# Aggregate keyword -> SQL function mapping
 _AGGREGATE_KEYWORDS = {
     "avg": "AVG", "average": "AVG", "mean": "AVG",
     "max": "MAX", "maximum": "MAX", "highest": "MAX",
     "largest": "MAX", "biggest": "MAX", "top": "MAX",
     "min": "MIN", "minimum": "MIN", "lowest": "MIN",
     "smallest": "MIN",
-    "sum": "SUM", "total": "SUM",
+    "sum": "SUM", "total": "SUM", "aggregate": "SUM",
 }
 
-# Operator category sets
-_SIMPLE_OPS      = {">", "<", ">=", "<=", "=", "!=", "<>"}
-_BETWEEN_OPS     = {"BETWEEN", "NOT BETWEEN"}
-_NULL_OPS        = {"IS NULL", "IS NOT NULL"}
-_LIKE_OPS        = {"LIKE"}
-# IN/NOT IN needs a value list — too complex for current pipeline, skipped
-_SKIP_OPS        = {"IN", "NOT IN"}
+_SIMPLE_OPS   = {">", "<", ">=", "<=", "=", "!=", "<>"}
+_BETWEEN_OPS  = {"BETWEEN", "NOT BETWEEN"}
+_NULL_OPS     = {"IS NULL", "IS NOT NULL"}
+_LIKE_OPS     = {"LIKE"}
+_SKIP_OPS     = {"IN", "NOT IN"}
 
+# "top N" -> ORDER BY DESC LIMIT N
+_TOP_PATTERN    = re.compile(r"\btop\s+(\d+)\b", re.IGNORECASE)
+# "bottom/lowest/least N" -> ORDER BY ASC LIMIT N
+_BOTTOM_PATTERN = re.compile(
+    r"\b(?:bottom|lowest|least|worst|minimum)\s+(\d+)\b", re.IGNORECASE
+)
+# GROUP BY trigger: "by <column>" near end
+_BY_PATTERN = re.compile(r"\bby\s+(.+)$", re.IGNORECASE)
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _quote_identifier(name):
-    """
-    SQL identifier (column or table name) ke double-quote diye wrap kore.
-    Already-quoted ba apostrophe-containing name-o handle hoy.
-    Multi-word column name ("First Name") r jonno eta critical.
-    """
-    # Internal double-quote escape kora
+    """SQL identifier (column or table name) ke double-quote diye wrap kore."""
     escaped = name.replace('"', '""')
     return f'"{escaped}"'
 
 
 def _nearest_numeric_column(ref_pos, words_with_pos, schema,
                              synonyms_path="knowledge/synonyms.json"):
-    """
-    ref_pos character position theke shobcheye kache numeric column match kore.
-    Return: column name (str) ba None.
-    """
+    """ref_pos-er kache shobcheye kache numeric column match kore."""
     numeric_columns = get_numeric_columns(schema)
-    best_col = None
-    best_dist = None
+    best_col, best_dist = None, None
     for item in words_with_pos:
         col = match_column(item["word"], schema, synonyms_path)
         if col and col in numeric_columns:
             dist = abs(item["position"] - ref_pos)
             if best_dist is None or dist < best_dist:
-                best_dist = dist
-                best_col = col
+                best_dist, best_col = dist, col
     return best_col
 
 
@@ -92,11 +90,7 @@ def _find_agg_column(question, schema,
                      synonyms_path="knowledge/synonyms.json"):
     """
     AVG/MAX/MIN/SUM intent-er jonno kon column-e function apply hobe seta ber kore.
-
-    Strategy:
-    - Question-e aggregate keyword (average, total, highest...) khonja.
-    - Sei keyword-er shobcheye kache numeric column-matching word pick kora.
-    - Match na pele prothom numeric column use kora.
+    Aggregate keyword-er shobcheye kache numeric column ta pick kora hoy.
     """
     numeric_columns = get_numeric_columns(schema)
     if not numeric_columns:
@@ -108,50 +102,113 @@ def _find_agg_column(question, schema,
         for m in re.finditer(r"\S+", question_lower)
     ]
 
-    # Aggregate keyword-er position
     agg_keyword_pos = None
     for item in words_with_pos:
         if item["word"] in _AGGREGATE_KEYWORDS:
             agg_keyword_pos = item["position"]
             break
 
-    best_col = None
-    best_dist = None
+    best_col, best_dist = None, None
     for item in words_with_pos:
         col = match_column(item["word"], schema, synonyms_path)
         if col and col in numeric_columns:
             dist = (abs(item["position"] - agg_keyword_pos)
-                    if agg_keyword_pos is not None
-                    else item["position"])
+                    if agg_keyword_pos is not None else item["position"])
             if best_dist is None or dist < best_dist:
-                best_dist = dist
-                best_col = col
+                best_dist, best_col = dist, col
 
-    return best_col if best_col else (numeric_columns[0] if numeric_columns else None)
+    return best_col or (numeric_columns[0] if numeric_columns else None)
 
+
+def _detect_group_by(question, schema,
+                     synonyms_path="knowledge/synonyms.json"):
+    """
+    "average salary by department" -> "Department" column ber kore.
+    "count players by club"        -> "Club"
+    Return: column name (str) ba None.
+    """
+    m = _BY_PATTERN.search(question)
+    if not m:
+        return None
+    candidate = m.group(1).strip()
+    # Candidate phrase theke column match kora
+    # Bigram/trigram o try kora hoy jate "blood group" type catch hoy
+    words = candidate.split()
+    for n in (min(3, len(words)), 2, 1):
+        phrase = " ".join(words[:n])
+        col = match_column(phrase, schema, synonyms_path)
+        if col:
+            return col
+    return None
+
+
+def _detect_order_limit(question, schema,
+                         synonyms_path="knowledge/synonyms.json"):
+    """
+    "top 10 highest salary"  -> (order_col, "DESC", 10)
+    "lowest 5 prices"        -> (order_col, "ASC",  5)
+    Return: (column_name, direction, limit) or (None, None, None)
+    """
+    numeric_columns = get_numeric_columns(schema)
+
+    top_m = _TOP_PATTERN.search(question)
+    if top_m:
+        n = int(top_m.group(1))
+        # Find the numeric column closest to / mentioned after "top N"
+        pos = top_m.end()
+        rest = question[pos:]
+        col = None
+        # Try to find explicit column in rest of sentence
+        for m in re.finditer(r"\S+", rest.lower()):
+            c = match_column(m.group(), schema, synonyms_path)
+            if c and c in numeric_columns:
+                col = c
+                break
+        if not col and numeric_columns:
+            col = numeric_columns[0]
+        return col, "DESC", n
+
+    bot_m = _BOTTOM_PATTERN.search(question)
+    if bot_m:
+        n = int(bot_m.group(1))
+        pos = bot_m.end()
+        rest = question[pos:]
+        col = None
+        for m in re.finditer(r"\S+", rest.lower()):
+            c = match_column(m.group(), schema, synonyms_path)
+            if c and c in numeric_columns:
+                col = c
+                break
+        if not col and numeric_columns:
+            col = numeric_columns[0]
+        return col, "ASC", n
+
+    return None, None, None
+
+
+# ── Main pipeline functions ───────────────────────────────────────────────────
 
 def build_query(question, schema, intent,
                 operators_path="knowledge/operators.json",
                 synonyms_path="knowledge/synonyms.json"):
     """
     Question, schema ebong intent niye internal query representation banay.
-
-    Return: {"intent": ..., "filters": [...], "agg_column": ...}
+    Return: {intent, filters, agg_column, group_by, order_by, order_dir, limit}
     """
     filters = []
-    filtered_columns = set()   # duplicate column filter avoid
+    filtered_columns = set()
 
-    # ── Step 1: Categorical filter (Gender='Female', District='Dhaka') ─────
+    # ── Step 1: Categorical filter ────────────────────────────────────────
     for match in match_categorical_values(question, schema):
         col = match["column"]
         if col not in filtered_columns:
             filters.append({"column": col, "operator": "=", "value": match["value"]})
             filtered_columns.add(col)
 
-    # ── Step 2: Numeric / operator-based filter ────────────────────────────
-    operators  = detect_operators(question, operators_path)
+    # ── Step 2: Numeric / operator-based filter ───────────────────────────
+    operators   = detect_operators(question, operators_path)
     all_numbers = extract_numbers(question)
-    used_num_ids = set()      # track which number objects already used
+    used_num_ids = set()
 
     words_with_pos = [
         {"word": m.group(), "position": m.start()}
@@ -159,17 +216,16 @@ def build_query(question, schema, intent,
     ]
 
     for op in operators:
-        symbol   = op["symbol"]
-        op_pos   = op["position"]
+        symbol = op["symbol"]
+        op_pos = op["position"]
 
         if symbol in _SKIP_OPS:
             continue
 
-        # ── IS NULL / IS NOT NULL: no value needed ─────────────────
+        # IS NULL / IS NOT NULL
         if symbol in _NULL_OPS:
             col = _nearest_numeric_column(op_pos, words_with_pos, schema, synonyms_path)
             if not col:
-                # Try text columns too for IS NULL
                 for item in words_with_pos:
                     c = match_column(item["word"], schema, synonyms_path)
                     if c and c not in filtered_columns:
@@ -180,7 +236,7 @@ def build_query(question, schema, intent,
                 filtered_columns.add(col)
             continue
 
-        # ── BETWEEN: needs two numbers after the operator ───────────
+        # BETWEEN
         if symbol in _BETWEEN_OPS:
             nums_after = sorted(
                 [n for n in all_numbers
@@ -191,37 +247,27 @@ def build_query(question, schema, intent,
                 col = _nearest_numeric_column(op_pos, words_with_pos, schema, synonyms_path)
                 if col and col not in filtered_columns:
                     filters.append({
-                        "column":  col,
+                        "column":   col,
                         "operator": symbol,
-                        "value":   nums_after[0]["value"],
-                        "value2":  nums_after[1]["value"],
+                        "value":    nums_after[0]["value"],
+                        "value2":   nums_after[1]["value"],
                     })
                     filtered_columns.add(col)
                     used_num_ids.add(id(nums_after[0]))
                     used_num_ids.add(id(nums_after[1]))
             continue
 
-        # ── LIKE: text-based matching (contains / starts with / ends with) ─
+        # LIKE
         if symbol in _LIKE_OPS:
-            # LIKE-er jonno text-e quoted ba unquoted value tola complex —
-            # simple approach: question theke operator-er pore prothom
-            # non-number, non-stopword word newa
-            col = _nearest_numeric_column(op_pos, words_with_pos, schema, synonyms_path)
-            # LIKE usually text columns-e use hoy; skip numeric columns
-            # value: operator-er pore prothom word
-            words_after = [
-                item for item in words_with_pos
-                if item["position"] > op_pos
-            ]
+            words_after = [item for item in words_with_pos if item["position"] > op_pos]
             if words_after:
                 val = words_after[0]["word"]
-                if not col:
-                    # text column-er kach theke khoja
-                    for item in words_with_pos:
-                        c = match_column(item["word"], schema, synonyms_path)
-                        if c and c not in filtered_columns:
-                            col = c
-                            break
+                col = None
+                for item in words_with_pos:
+                    c = match_column(item["word"], schema, synonyms_path)
+                    if c and c not in filtered_columns:
+                        col = c
+                        break
                 if col and col not in filtered_columns:
                     filters.append({
                         "column":   col,
@@ -231,7 +277,7 @@ def build_query(question, schema, intent,
                     filtered_columns.add(col)
             continue
 
-        # ── Simple binary ops (>, <, >=, <=, =, !=) ────────────────
+        # Simple binary ops (>, <, >=, <=, =, !=)
         if symbol in _SIMPLE_OPS:
             nums_after = sorted(
                 [n for n in all_numbers
@@ -252,46 +298,72 @@ def build_query(question, schema, intent,
                 filtered_columns.add(col)
                 used_num_ids.add(id(nearest_num))
 
-    # ── Step 3: Build internal query ───────────────────────────────────────
-    query = {
-        "intent":     intent,
-        "filters":    filters,
-        "agg_column": None,
-    }
+    # ── Step 3: GROUP BY detection ────────────────────────────────────────
+    group_by_col = _detect_group_by(question, schema, synonyms_path)
 
+    # ── Step 4: ORDER BY + LIMIT detection ───────────────────────────────
+    order_col, order_dir, limit = _detect_order_limit(question, schema, synonyms_path)
+
+    # ── Step 5: Aggregate column ──────────────────────────────────────────
+    agg_col = None
     if intent in _AGGREGATE_INTENTS:
-        query["agg_column"] = _find_agg_column(question, schema, synonyms_path)
+        agg_col = _find_agg_column(question, schema, synonyms_path)
 
-    return query
+    return {
+        "intent":    intent,
+        "filters":   filters,
+        "agg_column": agg_col,
+        "group_by":  group_by_col,
+        "order_by":  order_col,
+        "order_dir": order_dir or "DESC",
+        "limit":     limit,
+    }
 
 
 def query_to_sql(query, table_name="data"):
     """
     Internal query representation theke asol SQL query string banay.
-
-    Column name ebong table name shob double-quote diye wrap kora hoy,
-    jate multi-word column names ("First Name") valid SQL produce kore.
-    Supported filter types: simple binary, BETWEEN, IS NULL/IS NOT NULL, LIKE.
+    GROUP BY, ORDER BY, LIMIT — shob support kora hoise.
     """
     intent     = query["intent"]
-    filters    = query["filters"]
+    filters    = query.get("filters", [])
     agg_column = query.get("agg_column")
+    group_by   = query.get("group_by")
+    order_by   = query.get("order_by")
+    order_dir  = query.get("order_dir", "DESC")
+    limit      = query.get("limit")
     tbl        = _quote_identifier(table_name)
 
-    # SELECT part
-    if intent == "SELECT":
+    # ── SELECT clause ─────────────────────────────────────────────────────
+    # Special case: LIMIT thakle kintu GROUP BY na thakle aggregate use kora thik
+    # na (jemon "top 3 oldest" -> SELECT * ORDER BY ... LIMIT 3, MAX(...) na)
+    agg_overridden_to_select = (
+        limit is not None
+        and group_by is None
+        and intent in _AGGREGATE_INTENTS
+    )
+
+    if intent == "SELECT" or agg_overridden_to_select:
         select_part = "SELECT *"
     elif intent == "COUNT":
-        select_part = "SELECT COUNT(*)"
+        if group_by:
+            gb_col = _quote_identifier(group_by)
+            select_part = f"SELECT {gb_col}, COUNT(*)"
+        else:
+            select_part = "SELECT COUNT(*)"
     elif intent in _AGGREGATE_INTENTS:
         col = _quote_identifier(agg_column) if agg_column else "*"
-        select_part = f"SELECT {intent}({col})"
+        if group_by:
+            gb_col = _quote_identifier(group_by)
+            select_part = f"SELECT {gb_col}, {intent}({col})"
+        else:
+            select_part = f"SELECT {intent}({col})"
     else:
         select_part = "SELECT *"
 
     sql = f"{select_part} FROM {tbl}"
 
-    # WHERE clause
+    # ── WHERE clause ──────────────────────────────────────────────────────
     if filters:
         conditions = []
         for f in filters:
@@ -299,7 +371,6 @@ def query_to_sql(query, table_name="data"):
             operator = f["operator"]
 
             if operator in _NULL_OPS:
-                # IS NULL / IS NOT NULL — no value needed
                 conditions.append(f"{col_q} {operator}")
 
             elif operator in _BETWEEN_OPS:
@@ -308,19 +379,24 @@ def query_to_sql(query, table_name="data"):
                 conditions.append(f"{col_q} {operator} {v1} AND {v2}")
 
             else:
-                # Binary op (=, >, <, >=, <=, !=, LIKE)
-                value     = str(f.get("value", ""))
-                value_str = value
-                # Numeric value hole quote lagbe na
-                if value_str.replace(".", "", 1).lstrip("-").isdigit():
-                    condition = f"{col_q} {operator} {value_str}"
+                value = str(f.get("value", ""))
+                if value.replace(".", "", 1).lstrip("-").isdigit():
+                    conditions.append(f"{col_q} {operator} {value}")
                 else:
-                    safe = value_str.replace("'", "''")
-                    condition = f"{col_q} {operator} '{safe}'"
-
-                conditions.append(condition)
+                    safe = value.replace("'", "''")
+                    conditions.append(f"{col_q} {operator} '{safe}'")
 
         sql += " WHERE " + " AND ".join(conditions)
+
+    # ── GROUP BY clause ───────────────────────────────────────────────────
+    if group_by:
+        sql += f" GROUP BY {_quote_identifier(group_by)}"
+
+    # ── ORDER BY + LIMIT clause ───────────────────────────────────────────
+    if order_by:
+        sql += f" ORDER BY {_quote_identifier(order_by)} {order_dir}"
+    if limit:
+        sql += f" LIMIT {limit}"
 
     return sql
 
@@ -331,26 +407,33 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
     schema = {
+        "Name":       {"dtype": "object",  "sample_values": ["Alice"]},
         "Age":        {"dtype": "int64",   "sample_values": [30, 40]},
         "Gender":     {"dtype": "object",  "sample_values": ["Male", "Female"]},
+        "Salary":     {"dtype": "float64", "sample_values": [50000, 80000]},
+        "Department": {"dtype": "object",  "sample_values": ["CS", "EEE"]},
+        "GPA":        {"dtype": "float64", "sample_values": [3.5, 3.8]},
         "District":   {"dtype": "object",  "sample_values": ["Dhaka", "Sylhet"]},
-        "Score":      {"dtype": "float64", "sample_values": [8.5, 7.0]},
-        "First Name": {"dtype": "object",  "sample_values": ["Rahim"]},
     }
 
     cases = [
-        ("show female patients older than 30 from dhaka", "SELECT"),
-        ("average age", "AVG"),
-        ("highest score of female students", "MAX"),
-        ("show age between 20 and 30", "SELECT"),
-        ("show records where score is null", "SELECT"),
+        ("show female students older than 20", "SELECT"),
+        ("average salary by department",       "AVG"),
+        ("top 5 highest salary",               "SELECT"),
+        ("lowest 3 gpa",                       "SELECT"),
+        ("count students by department",       "COUNT"),
+        ("total salary of employees from dhaka", "SUM"),
+        ("maximum gpa of female students",    "MAX"),
+        ("how many employees",                 "COUNT"),
     ]
 
+    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    op_path  = os.path.join(base, "knowledge", "operators.json")
+    syn_path = os.path.join(base, "knowledge", "synonyms.json")
+
     for q, intent in cases:
-        qr = build_query(q, schema, intent,
-                         "../knowledge/operators.json",
-                         "../knowledge/synonyms.json")
-        print("Q     :", q)
-        print("Query :", qr)
-        print("SQL   :", query_to_sql(qr))
+        qr  = build_query(q, schema, intent, op_path, syn_path)
+        sql = query_to_sql(qr)
+        print(f"Q   : {q}")
+        print(f"SQL : {sql}")
         print()

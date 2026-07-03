@@ -1,11 +1,9 @@
+flask
+gunicorn
 pandas
 scikit-learn
 rapidfuzz
+sqlalchemy
+psycopg2-binary
 pytest
 datasets==2.21.0
-flask
-flask
-pandas
-rapidfuzz
-response
-scikit-learn

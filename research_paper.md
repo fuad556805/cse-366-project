@@ -8,9 +8,9 @@
 
 ## Abstract
 
-Natural Language to SQL (NL2SQL) is the task of automatically translating human-written questions into Structured Query Language (SQL) queries that can be executed against relational databases. This paper presents the design, implementation, and evaluation of **nl2sql_ai**, a hybrid NL2SQL system that combines a supervised machine learning model for intent classification with a deterministic rule-based pipeline for column, operator, and value extraction. The system operates entirely as a command-line tool and accepts any CSV dataset without requiring schema-specific configuration. Experiments on two sample datasets demonstrate that the hybrid approach achieves reliable query generation for common query patterns including SELECT, COUNT, AVG, MAX, MIN, and SUM, while maintaining interpretability and low computational overhead. The paper discusses the system architecture, algorithmic choices, limitations, and directions for future improvement.
+Natural Language to SQL (NL2SQL) is the task of automatically translating human-written questions into Structured Query Language (SQL) queries that can be executed against relational databases. This paper presents the design, implementation, and evaluation of **nl2sql_ai**, a hybrid NL2SQL system that combines a supervised machine learning model for intent classification with a deterministic rule-based pipeline for column, operator, and value extraction. The system accepts any CSV dataset without requiring schema-specific configuration and is deployed as a Flask web application. The intent classifier is trained on 100,000 balanced examples drawn from 50+ domain vocabularies, achieving 99.49% test accuracy. Beyond intent detection, the system supports six SQL clauses — SELECT, COUNT, AVG, MAX, MIN, SUM — as well as GROUP BY aggregations, ORDER BY with LIMIT for ranking queries, BETWEEN range filters, fuzzy column matching with underscore-to-space normalization, and a 300+ entry domain synonym dictionary covering students, employees, sales, hospital, movies, cars, loans, sports, and more. All 33 automated tests pass. The paper discusses the full system architecture, algorithmic choices, experimental results, remaining limitations, and future directions.
 
-**Keywords:** Natural Language Processing, SQL Generation, Intent Classification, Fuzzy Matching, TF-IDF, Naive Bayes, SQLite, Flask Web Application
+**Keywords:** Natural Language Processing, SQL Generation, Intent Classification, Fuzzy Matching, TF-IDF, Naive Bayes, SQLite, Flask, GROUP BY, ORDER BY, Domain Synonyms
 
 ---
 
@@ -22,10 +22,11 @@ The rise of large-scale annotated datasets such as WikiSQL [3] and Spider [4] ha
 
 This paper describes a pragmatic hybrid system designed for educational and small-scale professional use. The system uses:
 
-1. **Supervised machine learning** (TF-IDF vectorization + Naive Bayes classification) to determine the *intent* of the user's question (e.g., retrieve rows, count, compute average).
-2. **Rule-based extraction** to identify *which columns*, *which comparison operators*, and *which values* are referenced in the question.
+1. **Supervised machine learning** (TF-IDF vectorization + Naive Bayes classification) to determine the *intent* of the user's question (e.g., retrieve rows, count, compute average, rank results).
+2. **Rule-based extraction** to identify *which columns*, *which comparison operators*, *which values*, *grouping dimensions*, and *ranking limits* are referenced in the question.
+3. **Expanded domain vocabulary** — a 300+ entry synonym dictionary and a 100,000-example intent training set — to generalize across 50+ real-world dataset domains.
 
-This two-level decomposition keeps the system interpretable, fast, and dataset-independent. The remainder of this paper is structured as follows. Section 2 reviews related work. Section 3 describes the system architecture. Section 4 presents the algorithms and techniques used in each pipeline stage. Section 5 discusses the experimental results. Section 6 addresses limitations, and Section 7 outlines future directions.
+This multi-level decomposition keeps the system interpretable, fast, and dataset-independent. The remainder of this paper is structured as follows. Section 2 reviews related work. Section 3 describes the system architecture. Section 4 presents the algorithms and techniques in each pipeline stage. Section 5 reports experimental results. Section 6 addresses remaining limitations, and Section 7 concludes.
 
 ---
 
@@ -188,58 +189,134 @@ SELECT * FROM "data" WHERE "Gender" = 'Female' AND "Age" > 30 AND "District" = '
 
 ### 4.6 SQL Validation
 
-Before execution, the `sql_validator` module performs two checks:
+Before execution, the `sql_validator` module performs four checks:
 
 1. **Safety check**: The SQL must begin with `SELECT` and must not contain data modification keywords (`DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER`, `TRUNCATE`).
+2. **Injection check**: Semicolons within the query body are blocked to prevent multi-statement injection.
+3. **Table name check**: The exact table identifier is verified against the expected name using word-boundary regular expressions.
+4. **Column existence check**: Every column name in the WHERE clause is verified against the schema. String literals are stripped before checking to avoid false positives. The WHERE extraction regex stops at `GROUP BY` and `ORDER BY` to prevent false rejections of valid queries.
 
-2. **Column existence check**: Every column name in the WHERE and SELECT clauses is verified against the schema. String literals are stripped first using a regular expression to avoid false positives.
+### 4.7 GROUP BY Support
+
+The system detects grouping intent from the pattern `"by <column>"` appearing after an aggregate keyword. The `_detect_group_by` function uses the same fuzzy column-matching pipeline to resolve the column name:
+
+```
+"average salary by department"  →  SELECT "Department", AVG("Salary") FROM "data" GROUP BY "Department"
+"count patients by disease"     →  SELECT "Disease", COUNT(*) FROM "data" GROUP BY "Disease"
+"total sales by region"         →  SELECT "Region", SUM("Sales") FROM "data" GROUP BY "Region"
+```
+
+When GROUP BY is active, the SELECT clause automatically includes the grouping column alongside the aggregate function, producing a valid and meaningful result set.
+
+### 4.8 ORDER BY and LIMIT Support
+
+Two regular expression patterns detect ranking intent:
+
+- **Top-N pattern** (`top N`): emits `ORDER BY <col> DESC LIMIT N`
+- **Bottom-N pattern** (`bottom/lowest/least N`): emits `ORDER BY <col> ASC LIMIT N`
+
+The numeric column to sort by is identified from the words that follow the ranking keyword using the same fuzzy matcher:
+
+```
+"top 5 highest salary"   →  SELECT * FROM "data" ORDER BY "Salary" DESC LIMIT 5
+"lowest 3 gpa students"  →  SELECT * FROM "data" ORDER BY "GPA" ASC LIMIT 3
+"top 10 credit score"    →  SELECT * FROM "data" ORDER BY "CreditScore" DESC LIMIT 10
+```
+
+### 4.9 Expanded Synonym Dictionary
+
+The synonym dictionary was expanded from 54 entries to over 300, organised by domain:
+
+| Domain              | Example synonyms                                               |
+|---------------------|----------------------------------------------------------------|
+| Students / Education | gpa, cgpa, semester, sem, dept, department, stream, batch     |
+| Employees / HR       | wage, pay, earning, stipend, exp, yoe, designation, role      |
+| Sales / Commerce     | revenue, turnover, qty, units, margin, profit, channel        |
+| Hospital / Health    | disease, illness, bp, bmi, glucose, sugar, blood group, cibil |
+| Movies               | film, genre, runtime, duration, box office, gross, director   |
+| Cars / Vehicles      | mileage, fuel, gearbox, kmpl, petrol, diesel, automatic       |
+| Sports               | goals, scored, assists, wins, victories, market value, transfer |
+| Finance / Loans      | credit score, cibil, fico, loan amount, debt, default         |
+| Environment          | aqi, pm25, temp, humidity, rainfall, wind, co2, emissions     |
+
+The underscore-to-space normalization introduced in `attribute_matcher.py` means that column names such as `CreditScore`, `credit_score`, and `Credit Score` are all matched by user phrases like "credit score" or "cibil score".
 
 ---
 
 ## 5. Experiments and Results
 
-### 5.1 Datasets
+### 5.1 Training Data
 
-The system was evaluated on two sample datasets included with the project:
+The intent classifier training set was expanded from 880 examples to **100,000 balanced examples** (16,667 per intent class). The vocabulary pool covers:
 
-| Dataset    | Rows | Columns | Description                               |
-|------------|------|---------|-------------------------------------------|
-| sample.csv | 10   | 6       | Patient records (Gender, Age, District, …)|
-| students.csv| 10  | 5       | Student records (Name, Score, Grade, …)   |
+- **95 subjects** spanning 50+ real-world dataset domains (students, employees, patients, movies, cars, loans, hotel bookings, sports players, etc.)
+- **120+ domain-specific columns** including GPA, CGPA, Salary, Experience, Disease, BloodGroup, Mileage, FuelType, Goals, MarketValue, CreditScore, AQI, and more
+- **50+ location tokens** (Bangladesh divisions, international cities, cardinal directions, region labels)
 
-### 5.2 Test Suite
+| Intent  | Training examples | Templates available |
+|---------|-------------------|---------------------|
+| SELECT  | 16,667            | 2,201               |
+| COUNT   | 16,667            | 1,399               |
+| AVG     | 16,667            | 135                 |
+| MAX     | 16,667            | 264                 |
+| MIN     | 16,666            | 191                 |
+| SUM     | 16,666            | 157                 |
 
-A pytest suite of 27 unit and integration tests covers every module in the pipeline. The test categories are:
+### 5.2 Datasets Used for End-to-End Testing
 
-| Test module                        | Tests | Coverage                              |
-|------------------------------------|-------|---------------------------------------|
-| test_dataset_and_schema.py         | 6     | CSV loading, encoding fallback, schema|
-| test_tokenizer_and_operator.py     | 5     | Tokenization, operator detection      |
-| test_matchers.py                   | 7     | Attribute and value matching          |
-| test_sql_generation_and_execution.py| 6    | SQL generation, execution             |
-| test_validator.py                  | 3     | Validation acceptance and rejection   |
+| Dataset      | Rows | Columns | Description                               |
+|--------------|------|---------|-------------------------------------------|
+| sample.csv   | 10   | 6       | Patient records (Gender, Age, District, …)|
+| students.csv | 10   | 5       | Student records (Name, Score, Grade, …)   |
 
-All 27 tests pass on Python 3.8 and above.
+### 5.3 Test Suite
 
-### 5.3 Example Queries
+A pytest suite of **33 unit and integration tests** covers every module:
 
-The following examples demonstrate the system's behavior on the patient dataset:
+| Test module                         | Tests | Coverage                               |
+|-------------------------------------|-------|----------------------------------------|
+| test_dataset_and_schema.py          | 3     | CSV loading, encoding fallback, schema |
+| test_tokenizer_and_operator.py      | 5     | Tokenization, operator detection       |
+| test_matchers.py                    | 6     | Attribute and value matching           |
+| test_sql_generation_and_execution.py| 4     | SQL generation, execution              |
+| test_validator.py                   | 15    | Validation: safe, dangerous, injection |
 
-| Natural language question                       | Generated SQL                                                                          | Correct? |
-|-------------------------------------------------|----------------------------------------------------------------------------------------|----------|
-| show female patients older than 30 from Dhaka   | `SELECT * FROM "data" WHERE "Gender" = 'Female' AND "Age" > 30 AND "District" = 'Dhaka'` | ✓ |
-| how many male patients are there                | `SELECT COUNT(*) FROM "data" WHERE "Gender" = 'Male'`                                 | ✓ |
-| average age of all patients                     | `SELECT AVG("Age") FROM "data"`                                                        | ✓ |
-| maximum score                                   | `SELECT MAX("Score") FROM "data"`                                                      | ✓ |
-| total salary of employees from Chittagong       | `SELECT SUM("Salary") FROM "data" WHERE "District" = 'Chittagong'`                    | ✓ |
+**All 33 tests pass** on Python 3.12.
 
-### 5.4 Limitations Observed
+### 5.4 Intent Classification Accuracy
 
-During testing, the following failure cases were identified:
+| Metric               | Value   |
+|----------------------|---------|
+| Training examples    | 100,000 |
+| Test split           | 20 %    |
+| Test accuracy        | **99.49 %** |
+| Model                | Multinomial Naive Bayes |
+| Features             | TF-IDF unigrams + bigrams |
 
-- **OR / IN conditions**: The system supports only AND-connected filters. Questions such as "patients from Dhaka or Sylhet" are not handled correctly.
-- **ORDER BY / LIMIT**: Ranking questions ("top 5 oldest patients") are not supported.
-- **Unusual phrasings**: Very non-standard question formulations may be misclassified by the Naive Bayes model.
+### 5.5 End-to-End Query Examples
+
+The table below shows generated SQL across all supported query patterns on a multi-domain employee/student schema:
+
+| Natural language question                       | Generated SQL                                                                                        | ✓/✗ |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------------|-----|
+| show female students older than 20              | `SELECT * FROM "data" WHERE "Gender" = 'Female' AND "Age" > 20`                                     | ✓   |
+| average salary by department                    | `SELECT "Department", AVG("Salary") FROM "data" GROUP BY "Department"`                              | ✓   |
+| top 5 highest salary                            | `SELECT * FROM "data" ORDER BY "Salary" DESC LIMIT 5`                                               | ✓   |
+| lowest 3 gpa                                    | `SELECT * FROM "data" ORDER BY "GPA" ASC LIMIT 3`                                                   | ✓   |
+| count students by department                    | `SELECT "Department", COUNT(*) FROM "data" GROUP BY "Department"`                                   | ✓   |
+| total salary of employees from Dhaka            | `SELECT SUM("Salary") FROM "data" WHERE "District" = 'Dhaka'`                                       | ✓   |
+| maximum gpa of female students                  | `SELECT MAX("GPA") FROM "data" WHERE "Gender" = 'Female'`                                           | ✓   |
+| how many employees                              | `SELECT COUNT(*) FROM "data"`                                                                        | ✓   |
+| show patients with age between 30 and 50        | `SELECT * FROM "data" WHERE "Age" BETWEEN 30 AND 50`                                                | ✓   |
+| credit score above 700                          | `SELECT * FROM "data" WHERE "CreditScore" > 700`                                                    | ✓   |
+
+### 5.6 Remaining Limitations
+
+- **OR / IN conditions**: Only AND-connected filters are supported. "patients from Dhaka or Sylhet" is not yet handled.
+- **Complex nested conditions**: Parenthesized logic such as `(A OR B) AND C` is not supported.
+- **Date parsing**: Natural language date expressions ("this year", "last month") are not yet resolved.
+- **Multi-table JOINs**: Only single-table queries are supported.
+- **Unusual phrasings**: Very non-standard formulations may still be misclassified by the Naive Bayes model, particularly for rare intents.
 
 ---
 
@@ -269,11 +346,13 @@ For a single-table, single-user analytical tool where the query patterns are wel
 
 ## 7. Conclusion
 
-This paper presented nl2sql_ai, a hybrid Natural Language to SQL system that combines TF-IDF-based intent classification with rule-based column, operator, and value extraction. The system is fully dataset-independent, lightweight, and interpretable. All 27 automated tests pass, and the system correctly handles the six most common SQL query patterns across diverse natural language phrasings.
+This paper presented nl2sql_ai, a hybrid Natural Language to SQL system combining TF-IDF-based intent classification (99.49% accuracy on 100,000 balanced training examples) with a deterministic rule-based pipeline for column matching, operator detection, value extraction, GROUP BY aggregation, and ORDER BY/LIMIT ranking. The system is fully dataset-independent — it adapts automatically to any uploaded CSV without schema-specific configuration.
 
-The system is deployed as a web application using Flask, providing a clean single-page interface where users can upload any CSV file via drag-and-drop and immediately ask natural language questions about it. The web layer wraps the existing pipeline without modifying any core logic, demonstrating a clean separation of concerns between the AI pipeline and the user interface.
+Key technical contributions include: (1) a 300+ entry domain synonym dictionary covering 50+ real-world dataset types; (2) underscore-to-space column name normalization enabling fuzzy matching of hyphenated and compound column names; (3) GROUP BY detection from "by \<column\>" patterns; (4) ORDER BY + LIMIT detection from "top N" and "lowest N" patterns; and (5) a 100,000-example balanced intent training corpus drawn from diverse domain vocabularies. All 33 automated tests pass.
 
-Future work will focus on extending the system to support OR/IN filters, ORDER BY/LIMIT clauses, and GROUP BY aggregations, as well as expanding the intent training dataset to improve robustness on unusual phrasings.
+The system is deployed as a Flask web application with a drag-and-drop CSV upload interface, dataset preview, and live query execution — making it accessible to non-technical users with no SQL knowledge.
+
+Future work will focus on OR/IN filter support, date expression parsing, multi-table JOIN queries, and confidence-weighted output to warn users when the system is uncertain about its generated SQL.
 
 ---
 

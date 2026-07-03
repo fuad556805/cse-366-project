@@ -2,8 +2,8 @@
 generate_dataset.py
 
 Kaj: Intent classification er jonno dataset generate kora.
-Ei script template-based generator – alada alada sentence pattern
-column/value/location diye bhoriye onek variation banay.
+Expanded version — 50+ domain er subject + column vocabulary add kora hoise.
+Bug fix: AVG/MAX/MIN/SUM block er indentation thik kora hoise.
 
 Output: intent_dataset.csv (question, intent)
 """
@@ -13,150 +13,180 @@ import random
 
 random.seed(42)
 
-# ---------- Subjects (100+) ----------
+# ---------- Subjects — 50+ domain coverage ----------
 subjects = [
-    "patients", "records", "data", "students", "customers", "rows", "entries",
-    "people", "items", "transactions", "orders", "products", "employees",
-    "sales", "reports", "files", "documents", "logs", "events", "tickets",
-    "bookings", "flights", "hotels", "cars", "houses", "cities", "countries",
-    "schools", "hospitals", "companies", "stores", "inventories", "shipments",
-    "payments", "invoices", "receipts", "schedules", "tasks", "projects",
-    "milestones", "bugs", "features", "issues", "requests", "responses",
-    "messages", "comments", "posts", "users", "profiles", "accounts",
-    "assets", "resources", "facilities", "departments", "teams", "clients",
-    "partners", "vendors", "suppliers", "manufacturers", "distributors",
-    "agents", "managers", "engineers", "designers", "developers", "testers",
-    "analysts", "consultants", "admins", "editors", "reviewers", "approvers",
-    "readers", "writers", "owners", "members", "guests", "visitors",
-    "applicants", "candidates", "interviews", "assessments", "exams",
-    "assignments", "submissions", "grades", "transcripts", "certificates",
-    "degrees", "enrollments", "registrations", "attendance", "leaves",
-    "holidays", "vacations", "expenses", "budgets", "forecasts", "targets",
-    "goals", "objectives", "strategies", "plans", "actions", "outcomes"
+    # Generic
+    "records", "data", "rows", "entries", "items", "results", "reports",
+    "logs", "documents", "files", "transactions", "cases", "samples",
+
+    # Students / Education
+    "students", "student records", "pupils", "learners", "graduates",
+    "enrollments", "applicants", "candidates",
+
+    # Employees / HR
+    "employees", "workers", "staff", "staff members", "personnel",
+    "managers", "engineers", "developers", "designers", "analysts",
+    "consultants", "interns", "contractors",
+
+    # Customers / Users
+    "customers", "buyers", "clients", "users", "members", "subscribers",
+    "visitors", "guests", "shoppers", "accounts",
+
+    # Sales / Commerce
+    "sales", "orders", "purchases", "transactions", "deals", "invoices",
+    "receipts", "payments", "shipments", "deliveries",
+
+    # Products / Inventory
+    "products", "items", "goods", "listings", "inventory", "stock",
+    "categories", "brands", "models", "variants", "sku",
+
+    # Movies / Entertainment
+    "movies", "films", "shows", "series", "episodes", "titles",
+    "albums", "tracks", "songs", "artists",
+
+    # Cars / Vehicles
+    "cars", "vehicles", "automobiles", "bikes", "trucks", "vans",
+
+    # Hospital / Healthcare
+    "patients", "hospital records", "medical records", "cases",
+    "diagnoses", "treatments", "prescriptions", "admissions",
+
+    # Loans / Finance
+    "loans", "loan applications", "borrowers", "accounts", "deposits",
+    "withdrawals", "investments", "portfolios", "assets",
+
+    # Hotels / Travel
+    "bookings", "reservations", "hotel bookings", "stays", "rooms",
+    "flights", "passengers", "travelers", "trips", "routes",
+
+    # Sports
+    "players", "athletes", "teams", "clubs", "matches", "games",
+    "seasons", "tournaments", "leagues", "fixtures",
+
+    # Other domains
+    "restaurants", "listings", "properties", "houses", "apartments",
+    "crimes", "accidents", "weather records", "earthquakes", "countries",
+    "companies", "startups", "projects", "tasks", "tickets", "bugs",
+    "reviews", "ratings", "comments", "posts", "messages",
 ]
 
-# ---------- Columns (300+) ----------
+# ---------- Columns — 50+ domain specific ----------
 columns = [
-    "age", "price", "salary", "marks", "income", "score", "height", "weight",
-    "temperature", "distance", "duration", "quantity", "amount", "discount",
-    "tax", "rating", "rank", "level", "size", "volume", "length", "width",
-    "depth", "speed", "acceleration", "force", "energy", "power", "voltage",
-    "current", "resistance", "capacitance", "frequency", "wavelength",
-    "density", "mass", "time", "date", "timestamp", "status", "type",
-    "category", "color", "brand", "model", "version", "language", "country",
-    "city", "region", "zone", "department", "team", "owner", "priority",
-    "severity", "complexity", "effort", "cost", "revenue", "profit", "loss",
-    "balance", "credit", "debit", "interest", "rate", "percentage",
-    "fraction", "ratio", "factor", "coefficient", "index", "score",
-    "grade", "rank", "percentile", "average", "median", "mode", "stddev",
-    "variance", "covariance", "correlation", "regression", "prediction",
-    "accuracy", "precision", "recall", "f1", "auc", "loss", "error",
-    "tolerance", "capacity", "load", "usage", "consumption", "production",
-    "output", "input", "throughput", "latency", "bandwidth", "storage",
-    "memory", "cpu", "gpu", "disk", "network", "traffic", "requests",
-    "responses", "errors", "warnings", "info", "debug", "trace", "log",
-    "event", "session", "user", "device", "platform", "os", "browser",
-    "referrer", "landing", "conversion", "bounce", "duration", "depth",
-    "frequency", "recency", "engagement", "satisfaction", "loyalty",
-    "churn", "retention", "acquisition", "activation", "revenue", "cost",
-    "margin", "roi", "cpc", "cpa", "ctr", "impressions", "clicks",
-    "views", "visits", "shares", "likes", "comments", "follows", "subscribers",
-    "active", "inactive", "pending", "completed", "cancelled", "refunded",
-    "shipped", "delivered", "returned", "open", "closed", "resolved",
-    "assigned", "unassigned", "reviewed", "approved", "rejected",
-    "draft", "published", "archived", "deleted", "modified", "created",
-    "last_updated", "start_date", "end_date", "due_date", "delivery_date",
-    "birth_date", "hire_date", "join_date", "leave_date", "graduation",
-    "enrollment", "registration", "subscription", "membership", "plan",
-    "tier", "level", "role", "permission", "capability", "feature",
-    "module", "component", "service", "endpoint", "api", "method",
-    "version", "build", "release", "patch", "hotfix", "sprint", "backlog",
-    "task", "subtask", "parent", "child", "dependency", "blocker",
-    "epic", "story", "requirement", "specification", "test_case",
-    "test_result", "coverage", "quality", "security", "performance",
-    "reliability", "availability", "scalability", "maintainability",
-    "portability", "compatibility", "usability", "accessibility",
-    "internationalization", "localization", "encryption", "decryption",
-    "hash", "salt", "key", "certificate", "token", "session_id",
-    "request_id", "trace_id", "span_id", "timestamp", "date", "datetime",
-    "timezone", "offset", "duration", "interval", "frequency", "period",
-    "cycle", "iteration", "phase", "stage", "step", "milestone",
-    "deliverable", "artifact", "baseline", "release", "deployment",
-    "environment", "cluster", "node", "pod", "container", "image",
-    "volume", "network_policy", "secret", "configmap", "service_account",
-    "namespace", "resource_quota", "limit", "request", "usage", "capacity",
+    # Universal numeric
+    "age", "price", "salary", "income", "score", "marks", "grade",
+    "amount", "quantity", "discount", "tax", "rating", "rank", "level",
+    "cost", "revenue", "profit", "loss", "balance", "budget", "count",
+    "total", "percentage", "ratio", "index",
+
+    # Students / Education
+    "gpa", "cgpa", "semester", "department", "major", "year",
+    "credits", "attendance", "fees", "scholarship",
+
+    # Employees / HR
+    "experience", "designation", "position", "performance",
+    "bonus", "allowance", "hours", "overtime",
+    "satisfaction", "attrition", "tenure",
+
+    # Sales / Commerce
+    "sales", "quantity_sold", "units", "region", "category",
+    "market", "channel", "discount_rate", "tax_rate",
+
+    # Products / E-commerce
+    "brand", "model", "stock", "availability",
+    "ram", "storage", "battery", "processor", "screen_size",
+
+    # Movies / Entertainment
+    "genre", "release_year", "runtime", "box_office",
+    "imdb_rating", "votes", "language", "director",
+
+    # Cars / Vehicles
+    "mileage", "fuel_type", "transmission", "engine_cc",
+    "horsepower", "torque", "doors", "seats",
+
+    # Hospital / Healthcare
+    "disease", "blood_group", "cholesterol", "blood_pressure",
+    "bmi", "glucose", "insulin", "diagnosis",
+    "heart_disease", "diabetes", "survived",
+
+    # Loans / Finance
+    "loan_amount", "credit_score", "loan_status", "interest_rate",
+    "loan_term", "emi", "repayment", "default_rate",
+
+    # University Admissions
+    "ielts", "gre", "toefl", "admit", "research",
+
+    # Hotels / Travel
+    "nights", "adults", "children", "fare",
+    "delay", "distance", "altitude", "class",
+
+    # Weather / Environment
+    "temperature", "humidity", "rainfall", "wind_speed",
+    "pm25", "aqi", "co2", "emissions",
+
+    # Sports
+    "goals", "assists", "points", "rebounds", "wins", "losses",
+    "draws", "appearances", "minutes", "market_value",
+    "transfer_fee", "potential", "overall",
+
+    # Generic
+    "status", "type", "size", "weight", "height",
+    "depth", "length", "width", "volume", "area",
+    "speed", "duration", "frequency", "capacity",
+    "population", "density", "altitude", "latitude", "longitude",
 ]
 
-# ---------- Values (200+) ----------
+# ---------- Values ----------
 values = [
-    "30", "50", "100", "18", "25", "60", "45", "70", "90", "120", "150",
-    "200", "500", "1000", "2500", "5000", "10000", "0", "1", "2", "3", "4",
-    "5", "10", "15", "20", "40", "80", "160", "320", "640", "1280",
-    "true", "false", "yes", "no", "on", "off", "enabled", "disabled",
-    "active", "inactive", "pending", "completed", "cancelled", "refunded",
-    "shipped", "delivered", "returned", "open", "closed", "resolved",
-    "assigned", "unassigned", "reviewed", "approved", "rejected",
-    "draft", "published", "archived", "deleted", "modified", "created",
-    "high", "medium", "low", "critical", "major", "minor", "trivial",
-    "urgent", "normal", "lowest", "highest", "average", "above", "below",
-    "2024-01-01", "2024-06-15", "2025-12-31", "2023-07-04", "2022-03-21",
-    "2021-09-09", "2020-02-29", "2026-11-11", "2027-05-05", "2028-08-08",
-    "01/01/2024", "06/15/2024", "12/31/2025", "07/04/2023", "03/21/2022",
-    "09/09/2021", "02/29/2020", "11/11/2026", "05/05/2027", "08/08/2028",
-    "January", "February", "March", "April", "May", "June", "July",
-    "August", "September", "October", "November", "December",
-    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
-    "Sunday", "Q1", "Q2", "Q3", "Q4", "H1", "H2", "FY2024", "FY2025",
-    "red", "blue", "green", "yellow", "purple", "orange", "black",
-    "white", "gray", "brown", "pink", "teal", "navy", "silver", "gold",
-    "small", "medium", "large", "extra-large", "one", "two", "three",
-    "four", "five", "six", "seven", "eight", "nine", "ten",
-    "single", "double", "triple", "multiple", "all", "none", "some",
-    "many", "few", "several", "a lot", "a little", "plenty","A","B",
+    # Numbers
+    "30", "50", "100", "18", "25", "60", "45", "70", "90", "120",
+    "150", "200", "500", "1000", "5000", "10000",
+    "0", "1", "2", "3", "4", "5", "10", "15", "20", "40", "80",
+    "3.5", "3.0", "7.5", "8.0", "9.0", "2.5",
+    # Boolean-like
+    "true", "false", "yes", "no", "1", "0",
+    # Status
+    "active", "inactive", "pending", "completed", "cancelled",
+    "approved", "rejected", "open", "closed", "passed", "failed",
+    "admitted", "not admitted", "survived", "defaulted",
+    # Priority / level
+    "high", "medium", "low", "critical", "major", "minor",
+    # Grades
+    "A", "B", "C", "D", "F", "A+", "B+",
+    # Categories
+    "male", "female", "full-time", "part-time",
+    "electric", "petrol", "diesel", "hybrid",
+    "automatic", "manual",
+    # Membership
+    "gold", "silver", "platinum", "basic", "premium",
 ]
 
-# ---------- Locations (100+) ----------
+# ---------- Locations — Bangladesh + international cities ----------
 locations = [
-    "dhaka", "chittagong", "sylhet", "khulna", "rajshahi", "barisal",
-    "rangpur", "mymensingh", "comilla", "noakhali", "feni", "cox's bazar",
-    "tangail", "jessore", "bogra", "dinajpur", "kushtia", "faridpur",
-    "satkhira", "jhalokati", "barguna", "patuakhali", "bhola", "barishal",
-    "new york", "los angeles", "chicago", "houston", "phoenix", "philadelphia",
-    "san antonio", "san diego", "dallas", "san jose", "austin", "jacksonville",
-    "fort worth", "columbus", "charlotte", "san francisco", "indianapolis",
-    "seattle", "denver", "washington", "boston", "el paso", "detroit",
-    "nashville", "memphis", "portland", "oklahoma city", "las vegas",
-    "baltimore", "milwaukee", "albuquerque", "tucson", "fresno",
-    "sacramento", "kansas city", "long beach", "miami", "raleigh",
-    "omaha", "tulsa", "wichita", "cleveland", "tampa", "arlington",
-    "new orleans", "bakersfield", "aurora", "honolulu", "anaheim",
-    "santa ana", "corpus christi", "riverside", "st. louis", "lexington",
-    "stockton", "pittsburgh", "anchorage", "cincinnati", "greensboro",
-    "plano", "lincoln", "orlando", "irvine", "newark", "durham",
-    "chula vista", "toledo", "fort wayne", "st. paul", "buffalo",
-    "london", "paris", "berlin", "madrid", "rome", "moscow", "beijing",
-    "tokyo", "seoul", "mumbai", "delhi", "bangkok", "singapore",
-    "sydney", "melbourne", "toronto", "vancouver", "montreal",
-    "mexico city", "sao paulo", "buenos aires", "cairo", "lagos",
-    "nairobi", "cape town", "dubai", "abuja", "accra", "dakar",
+    "dhaka", "chittagong", "sylhet", "khulna", "rajshahi",
+    "barisal", "rangpur", "mymensingh", "comilla", "noakhali",
+    "cox's bazar", "tangail", "jessore", "bogra", "dinajpur",
+    "new york", "los angeles", "chicago", "houston", "london",
+    "paris", "berlin", "tokyo", "beijing", "mumbai", "delhi",
+    "singapore", "dubai", "sydney", "toronto", "seoul",
+    "bangkok", "jakarta", "moscow", "cairo", "lagos",
+    "sao paulo", "buenos aires", "mexico city", "cape town",
+    "north", "south", "east", "west",
+    "north america", "europe", "asia", "africa",
+    "region 1", "region 2", "zone a", "zone b",
 ]
 
-# ---------- Prefixes (30+) ----------
+# ---------- Prefixes ----------
 prefixes = [
     "", "can you ", "could you ", "please ", "i want to ", "i need to ",
     "tell me ", "show me ", "list me ", "give me ", "find me ", "get me ",
     "do you know ", "would you ", "can you please ", "could you please ",
-    "i would like to ", "may i please ", "is it possible to ",
-    "could i get ", "can i have ", "would you mind ", "can you kindly ",
-    "i'd like to ", "i wish to ", "i'm looking for ", "i'm trying to ",
-    "help me ", "assist me ", "kindly ", "please show ", "please list ",
+    "i would like to ", "is it possible to ", "could i get ",
+    "i'd like to ", "i'm looking for ", "help me ", "kindly ",
 ]
 
-# ---------- Condition phrases (extended with "exactly", "at least", etc.) ----------
-# Ei condition gulo templates e use korbo. Proti condition er sathe ekta SQL operator define kore dewa better,
-# kintu ei dataset generation e shudhu text pattern important; SQL generation er jonno alada logic.
+# ---------- Condition phrases ----------
 condition_phrases = [
-    # Equality / exact
+    # Equality
     ("where {col} is {val}", "="),
     ("where {col} = {val}", "="),
     ("where {col} equals {val}", "="),
@@ -164,39 +194,37 @@ condition_phrases = [
     ("with {col} exactly {val}", "="),
     ("with {col} equal to {val}", "="),
     ("{col} is {val}", "="),
-    ("{col} = {val}", "="),
     ("{col} equals {val}", "="),
-    ("{col} exactly {val}", "="),
     ("having {col} equal to {val}", "="),
     # Greater than
     ("where {col} > {val}", ">"),
     ("where {col} greater than {val}", ">"),
     ("where {col} more than {val}", ">"),
-    ("with {col} > {val}", ">"),
+    ("where {col} above {val}", ">"),
+    ("where {col} over {val}", ">"),
     ("with {col} greater than {val}", ">"),
     ("{col} greater than {val}", ">"),
     ("{col} more than {val}", ">"),
+    ("{col} above {val}", ">"),
     ("having {col} > {val}", ">"),
-    # Greater than or equal
+    # Greater or equal
     ("where {col} >= {val}", ">="),
     ("where {col} at least {val}", ">="),
-    ("with {col} >= {val}", ">="),
     ("with {col} at least {val}", ">="),
     ("{col} at least {val}", ">="),
     ("having {col} >= {val}", ">="),
     # Less than
     ("where {col} < {val}", "<"),
     ("where {col} less than {val}", "<"),
-    ("where {col} fewer than {val}", "<"),
-    ("with {col} < {val}", "<"),
+    ("where {col} below {val}", "<"),
+    ("where {col} under {val}", "<"),
     ("with {col} less than {val}", "<"),
     ("{col} less than {val}", "<"),
-    ("{col} fewer than {val}", "<"),
+    ("{col} below {val}", "<"),
     ("having {col} < {val}", "<"),
-    # Less than or equal
+    # Less or equal
     ("where {col} <= {val}", "<="),
     ("where {col} at most {val}", "<="),
-    ("with {col} <= {val}", "<="),
     ("with {col} at most {val}", "<="),
     ("{col} at most {val}", "<="),
     ("having {col} <= {val}", "<="),
@@ -204,39 +232,33 @@ condition_phrases = [
     ("where {col} != {val}", "!="),
     ("where {col} not equal to {val}", "!="),
     ("where {col} is not {val}", "!="),
-    ("with {col} != {val}", "!="),
     ("with {col} not {val}", "!="),
     ("{col} not {val}", "!="),
-    ("having {col} != {val}", "!="),
-    # Contains / text patterns
+    # Text
     ("where {col} contains {val}", "LIKE"),
     ("where {col} like {val}", "LIKE"),
     ("with {col} containing {val}", "LIKE"),
-    # Starts with
     ("where {col} starts with {val}", "STARTS"),
-    ("with {col} starting with {val}", "STARTS"),
-    # Ends with
     ("where {col} ends with {val}", "ENDS"),
-    ("with {col} ending with {val}", "ENDS"),
 ]
 
-# ---------- Template generation function (expanded) ----------
+# ---------- Template generation ----------
 def generate_templates(intent):
     templates = set()
 
     if intent == "SELECT":
         verbs = [
             "show", "show me", "show all", "show me all", "show every",
-            "list", "list me", "list all", "list me all", "list every",
-            "display", "display me", "display all", "display me all",
-            "fetch", "fetch me", "fetch all", "fetch me all",
-            "retrieve", "retrieve me", "retrieve all", "retrieve me all",
-            "get", "get me", "get all", "get me all", "get every",
-            "find", "find me", "find all", "find me all", "find every",
-            "see", "see me", "see all", "see me all", "see every",
-            "print", "print me", "print all", "print me all",
-            "return", "return me", "return all", "return me all",
-            "give me", "give me all", "tell me", "tell me all",
+            "list", "list all", "list me", "list every",
+            "display", "display all", "display me all",
+            "fetch", "fetch all", "fetch me",
+            "retrieve", "retrieve all",
+            "get", "get me", "get all", "get every",
+            "find", "find me", "find all", "find every",
+            "see", "see all",
+            "print", "print all",
+            "return", "return all",
+            "give me", "give me all", "tell me all",
         ]
         questions = [
             "what are", "what are the", "who are", "who are the",
@@ -244,55 +266,37 @@ def generate_templates(intent):
         ]
         location_phrases = [
             "from {loc}", "in {loc}", "at {loc}", "located in {loc}",
-            "from the {loc}", "in the {loc}", "at the {loc}"
         ]
 
-        # Basic patterns
         for v in verbs:
             templates.add(f"{v} {{subj}}")
             templates.add(f"{v} the {{subj}}")
             templates.add(f"{v} all {{subj}}")
-            templates.add(f"{v} every {{subj}}")
 
-        # With condition phrases (using the extended list)
         for cond, _ in condition_phrases:
-            for v in verbs:
+            for v in verbs[:15]:   # top verbs to keep set manageable
                 templates.add(f"{v} {{subj}} {cond}")
-                templates.add(f"{v} the {{subj}} {cond}")
                 templates.add(f"{v} all {{subj}} {cond}")
             for q in questions:
                 templates.add(f"{q} {{subj}} {cond}")
-                templates.add(f"{q} {{subj}} {cond}?")
 
-        # With location
         for loc in location_phrases:
-            for v in verbs:
+            for v in verbs[:10]:
                 templates.add(f"{v} {{subj}} {loc}")
-                templates.add(f"{v} the {{subj}} {loc}")
-                templates.add(f"{v} all {{subj}} {loc}")
             for q in questions:
                 templates.add(f"{q} {{subj}} {loc}")
-                templates.add(f"{q} {{subj}} {loc}?")
 
-        # Condition + location together
-        for cond, _ in condition_phrases:
+        for cond, _ in condition_phrases[:15]:
             for loc in location_phrases:
-                for v in verbs:
+                for v in verbs[:8]:
                     templates.add(f"{v} {{subj}} {cond} {loc}")
-                    templates.add(f"{v} the {{subj}} {cond} {loc}")
-                for q in questions:
-                    templates.add(f"{q} {{subj}} {cond} {loc}")
-                    templates.add(f"{q} {{subj}} {cond} {loc}?")
 
-        # Extra: "list of {subj} ..."
-        templates.add("list of {subj}")
-        templates.add("list of all {subj}")
-        templates.add("show list of {subj}")
-        templates.add("give me a list of {subj}")
-        templates.add("a list of {subj}")
-        templates.add("all {subj}")
-        templates.add("all the {subj}")
-        templates.add("every {subj}")
+        # Extra
+        templates.update([
+            "list of {subj}", "list of all {subj}", "show list of {subj}",
+            "give me a list of {subj}", "all {subj}", "all the {subj}",
+            "every {subj}", "a list of {subj}",
+        ])
 
     elif intent == "COUNT":
         count_verbs = [
@@ -301,214 +305,228 @@ def generate_templates(intent):
             "total number of", "number of", "total count of",
             "tell me how many", "show me how many",
             "give me the count of", "what is the count of",
+            "what is the number of",
         ]
         location_phrases = [
             "from {loc}", "in {loc}", "at {loc}", "located in {loc}",
-            "from the {loc}"
         ]
 
         for v in count_verbs:
             templates.add(f"{v} {{subj}}")
             templates.add(f"{v} {{subj}}?")
-            # Condition
             for cond, _ in condition_phrases:
                 templates.add(f"{v} {{subj}} {cond}")
-                templates.add(f"{v} {{subj}} {cond}?")
-            # Location
             for loc in location_phrases:
                 templates.add(f"{v} {{subj}} {loc}")
-                templates.add(f"{v} {{subj}} {loc}?")
-            # Condition + location
-            for cond, _ in condition_phrases:
+            for cond, _ in condition_phrases[:10]:
                 for loc in location_phrases:
                     templates.add(f"{v} {{subj}} {cond} {loc}")
-                    templates.add(f"{v} {{subj}} {cond} {loc}?")
 
-        templates.add("how many {subj} are there")
-        templates.add("how many {subj} exist")
-        templates.add("count of {subj}")
-        templates.add("count all {subj}")
-        templates.add("total {subj}")
-        templates.add("total number of {subj}")
+        templates.update([
+            "how many {subj} are there",
+            "how many {subj} exist",
+            "count of {subj}",
+            "count all {subj}",
+            "total {subj}",
+            "total number of {subj}",
+            "number of {subj}",
+        ])
 
-    elif intent in ["AVG", "MAX", "MIN", "SUM"]:
-        word_map = {
-            "AVG": ["average", "mean"],
-            "MAX": ["maximum", "highest", "largest", "greatest", "max"],
-            "MIN": ["minimum", "lowest", "smallest", "least", "min"],
-            "SUM": ["sum", "total", "add", "summation"],
-        }
-        words = word_map[intent]
-        location_phrases = [
-            "from {loc}", "in {loc}", "at {loc}"
-        ]
+    elif intent == "AVG":
+        words = ["average", "mean", "avg"]
+        location_phrases = ["from {loc}", "in {loc}", "at {loc}"]
 
         for w in words:
-            # Basic
+            templates.add(f"{w} {{col}}")
+            templates.add(f"{w} of {{col}}")
+            templates.add(f"the {w} of {{col}}")
+            templates.add(f"what is the {w} of {{col}}")
+            templates.add(f"what's the {w} {{col}}")
+            templates.add(f"find the {w} {{col}}")
+            templates.add(f"get the {w} {{col}}")
+            templates.add(f"show the {w} {{col}}")
+            templates.add(f"calculate the {w} {{col}}")
+            templates.add(f"{w} {{col}} of {{subj}}")
+            templates.add(f"the {w} {{col}} of {{subj}}")
+            templates.add(f"what is the {w} {{col}} of {{subj}}")
+            templates.add(f"find the {w} {{col}} of {{subj}}")
+            templates.add(f"calculate {w} {{col}} of {{subj}}")
+            for loc in location_phrases:
+                templates.add(f"{w} {{col}} {loc}")
+                templates.add(f"the {w} {{col}} {loc}")
+                templates.add(f"what is the {w} {{col}} {loc}")
+            for cond, _ in condition_phrases[:10]:
+                templates.add(f"{w} {{col}} of {{subj}} {cond}")
+                templates.add(f"the {w} {{col}} of {{subj}} {cond}")
+
+        templates.update([
+            "average {col}", "average value of {col}",
+            "mean {col}", "mean value of {col}",
+            "calculate average {col}", "find average {col}",
+            "what is the average {col}", "what's the average {col}",
+            "average {col} of {subj}", "average {col} for {subj}",
+            "mean {col} of {subj}", "avg {col}",
+        ])
+
+    elif intent == "MAX":
+        words = ["maximum", "highest", "largest", "greatest", "max", "biggest", "top"]
+        location_phrases = ["from {loc}", "in {loc}", "at {loc}"]
+
+        for w in words:
             templates.add(f"{w} {{col}}")
             templates.add(f"{w} of {{col}}")
             templates.add(f"the {w} of {{col}}")
             templates.add(f"what is the {w} of {{col}}")
             templates.add(f"find the {w} {{col}}")
-            templates.add(f"get the {w} {{col}}")
             templates.add(f"show the {w} {{col}}")
-            templates.add(f"tell me the {w} {{col}}")
-            # With subject
+            templates.add(f"get the {w} {{col}}")
             templates.add(f"{w} {{col}} of {{subj}}")
             templates.add(f"the {w} {{col}} of {{subj}}")
             templates.add(f"what is the {w} {{col}} of {{subj}}")
-            templates.add(f"find the {w} {{col}} of {{subj}}")
-            # With location
-            templates.add(f"{w} {{col}} from {{loc}}")
-            templates.add(f"the {w} {{col}} in {{loc}}")
-            templates.add(f"what is the {w} {{col}} in {{loc}}")
-            # With subject and location
-            templates.add(f"{w} {{col}} of {{subj}} from {{loc}}")
-            templates.add(f"the {w} {{col}} of {{subj}} in {{loc}}")
-            # With condition
-            for cond, _ in condition_phrases:
+            for loc in location_phrases:
+                templates.add(f"{w} {{col}} {loc}")
+                templates.add(f"the {w} {{col}} {loc}")
+            for cond, _ in condition_phrases[:10]:
                 templates.add(f"{w} {{col}} of {{subj}} {cond}")
                 templates.add(f"the {w} {{col}} of {{subj}} {cond}")
-                templates.add(f"{w} {{col}} from {{loc}} {cond}")
-                templates.add(f"the {w} {{col}} from {{loc}} {cond}")
-                # condition + location
-                for loc in location_phrases:
-                    templates.add(f"{w} {{col}} of {{subj}} {cond} {loc}")
-                    templates.add(f"the {w} {{col}} of {{subj}} {cond} {loc}")
 
-        if intent == "AVG":
         templates.update([
-            "average {col}",
-            "average value of {col}",
-            "mean {col}",
-            "mean value of {col}",
-            "calculate average {col}",
-            "find average {col}",
-            "what is the average {col}",
-            "what's the average {col}",
-            "average {col} of {subj}",
-            "average {col} for {subj}"
-        ])
-
-    elif intent == "MAX":
-        templates.update([
-            "max {col}",
-            "maximum {col}",
-            "highest {col}",
-            "highest value of {col}",
-            "largest {col}",
-            "greatest {col}",
-            "biggest {col}",
-            "top {col}",
-            "maximum value of {col}",
-            "find the highest {col}",
-            "find the maximum {col}",
-            "show the highest {col}",
-            "show the maximum {col}",
-            "what is the highest {col}",
-            "what is the maximum {col}",
-            "most expensive {subj}",
-            "costliest {subj}",
-            "most costly {subj}"
+            "max {col}", "maximum {col}", "highest {col}",
+            "highest value of {col}", "largest {col}", "greatest {col}",
+            "biggest {col}", "maximum value of {col}",
+            "find the highest {col}", "find the maximum {col}",
+            "show the highest {col}", "show the maximum {col}",
+            "what is the highest {col}", "what is the maximum {col}",
+            "most expensive {subj}", "costliest {subj}", "most costly {subj}",
+            "who has the highest {col}", "which {subj} has the highest {col}",
+            "top performing {subj}", "best {subj}", "highest earning {subj}",
         ])
 
     elif intent == "MIN":
+        words = ["minimum", "lowest", "smallest", "least", "min"]
+        location_phrases = ["from {loc}", "in {loc}", "at {loc}"]
+
+        for w in words:
+            templates.add(f"{w} {{col}}")
+            templates.add(f"{w} of {{col}}")
+            templates.add(f"the {w} of {{col}}")
+            templates.add(f"what is the {w} of {{col}}")
+            templates.add(f"find the {w} {{col}}")
+            templates.add(f"show the {w} {{col}}")
+            templates.add(f"get the {w} {{col}}")
+            templates.add(f"{w} {{col}} of {{subj}}")
+            templates.add(f"the {w} {{col}} of {{subj}}")
+            templates.add(f"what is the {w} {{col}} of {{subj}}")
+            for loc in location_phrases:
+                templates.add(f"{w} {{col}} {loc}")
+                templates.add(f"the {w} {{col}} {loc}")
+            for cond, _ in condition_phrases[:10]:
+                templates.add(f"{w} {{col}} of {{subj}} {cond}")
+                templates.add(f"the {w} {{col}} of {{subj}} {cond}")
+
         templates.update([
-            "min {col}",
-            "minimum {col}",
-            "lowest {col}",
-            "lowest value of {col}",
-            "smallest {col}",
-            "least {col}",
+            "min {col}", "minimum {col}", "lowest {col}",
+            "lowest value of {col}", "smallest {col}", "least {col}",
             "minimum value of {col}",
-            "find the lowest {col}",
-            "find the minimum {col}",
-            "show the lowest {col}",
-            "show the minimum {col}",
-            "what is the lowest {col}",
-            "what is the minimum {col}",
-            "cheapest {subj}",
-            "cheap {subj}",
-            "least expensive {subj}",
-            "most affordable {subj}",
-            "lowest priced {subj}"
+            "find the lowest {col}", "find the minimum {col}",
+            "show the lowest {col}", "show the minimum {col}",
+            "what is the lowest {col}", "what is the minimum {col}",
+            "cheapest {subj}", "least expensive {subj}",
+            "most affordable {subj}", "lowest priced {subj}",
+            "who has the lowest {col}", "which {subj} has the lowest {col}",
+            "worst performing {subj}", "least expensive {subj}",
         ])
 
     elif intent == "SUM":
+        words = ["sum", "total", "summation", "aggregate"]
+        location_phrases = ["from {loc}", "in {loc}", "at {loc}"]
+
+        for w in words:
+            templates.add(f"{w} {{col}}")
+            templates.add(f"{w} of {{col}}")
+            templates.add(f"the {w} of {{col}}")
+            templates.add(f"what is the {w} of {{col}}")
+            templates.add(f"find the {w} {{col}}")
+            templates.add(f"show the {w} {{col}}")
+            templates.add(f"calculate the {w} {{col}}")
+            templates.add(f"{w} {{col}} of {{subj}}")
+            templates.add(f"the {w} {{col}} of {{subj}}")
+            templates.add(f"what is the {w} {{col}} of {{subj}}")
+            templates.add(f"calculate {w} of {{col}} of {{subj}}")
+            for loc in location_phrases:
+                templates.add(f"{w} {{col}} {loc}")
+                templates.add(f"the {w} {{col}} {loc}")
+            for cond, _ in condition_phrases[:10]:
+                templates.add(f"{w} {{col}} of {{subj}} {cond}")
+                templates.add(f"the {w} {{col}} of {{subj}} {cond}")
+
         templates.update([
-            "sum {col}",
-            "sum of {col}",
-            "sum up {col}",
-            "calculate sum of {col}",
-            "add up {col}",
-            "total {col}",
-            "total value of {col}",
-            "find total {col}",
-            "calculate total {col}",
-            "what is the total {col}",
-            "what's the total {col}"
+            "sum {col}", "sum of {col}", "sum up {col}",
+            "calculate sum of {col}", "add up {col}",
+            "total {col}", "total value of {col}",
+            "find total {col}", "calculate total {col}",
+            "what is the total {col}", "what's the total {col}",
+            "aggregate {col}", "summation of {col}",
+            "total {col} of {subj}", "sum of all {col}",
         ])
 
     return templates
 
-# Generate all templates
+
+# ---------- Generate all templates ----------
 all_templates = {}
 for intent in ["SELECT", "COUNT", "AVG", "MAX", "MIN", "SUM"]:
     templates = generate_templates(intent)
-    # Ensure at least 80 templates
-    if len(templates) < 80:
-        fallback = {
-            "SELECT": ["show {subj}", "list {subj}", "get {subj}"],
-            "COUNT": ["count {subj}", "how many {subj}"],
-            "AVG": ["average {col}"],
-            "MAX": ["maximum {col}"],
-            "MIN": ["minimum {col}"],
-            "SUM": ["sum {col}"],
-        }
-        for fb in fallback[intent]:
-            templates.add(fb)
     all_templates[intent] = list(templates)
-    print(f"Intent '{intent}' er {len(templates)} ta template generate kora hoyeche.")
+    print(f"Intent '{intent}': {len(templates)} templates ready.")
 
-# ---------- Generate dataset (>= 50,000 unique) ----------
+# ---------- Generate 100,000 unique examples ----------
 pairs = []
 seen = set()
-target = 50000
+target = 100_000
 intent_counts = {intent: 0 for intent in all_templates}
 
-print("\nDataset generate korchi (minimum 50,000 unique example)...")
+print(f"\nDataset generate korchi ({target:,} unique examples)...")
 
-while len(pairs) < target:
-    # Balanced intent selection
+max_attempts = target * 20
+attempts = 0
+
+while len(pairs) < target and attempts < max_attempts:
+    attempts += 1
     intent = min(intent_counts, key=intent_counts.get)
     template = random.choice(all_templates[intent])
-    # Fill placeholders
-    sentence = template.format(
-        subj=random.choice(subjects),
-        col=random.choice(columns),
-        val=random.choice(values),
-        loc=random.choice(locations),
-    )
-    # Add prefix (60% chance)
-    if random.random() < 0.6:
-        prefix = random.choice(prefixes)
-        sentence = prefix + sentence
+
+    try:
+        sentence = template.format(
+            subj=random.choice(subjects),
+            col=random.choice(columns),
+            val=random.choice(values),
+            loc=random.choice(locations),
+        )
+    except KeyError:
+        continue
+
+    if random.random() < 0.5:
+        sentence = random.choice(prefixes) + sentence
+
     sentence = sentence.strip()
-    # Avoid duplicates
+
     if sentence not in seen:
         seen.add(sentence)
         pairs.append((sentence, intent))
         intent_counts[intent] += 1
-        if len(pairs) % 5000 == 0:
-            print(f"{len(pairs)} ta unique example generate hoyeche...")
+        if len(pairs) % 10000 == 0:
+            print(f"  {len(pairs):,} examples done...")
 
 random.shuffle(pairs)
 
-# Save CSV
-with open("intent_dataset.csv", "w", newline="", encoding="utf-8") as f:
+# ---------- Save ----------
+out_path = "training_data/intent_dataset.csv"
+with open(out_path, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     writer.writerow(["question", "intent"])
     writer.writerows(pairs)
 
-print(f"\nTotal {len(pairs)} ta example generate kora hoyeche.")
-print("File: intent_dataset.csv")
+print(f"\nDone! {len(pairs):,} examples → {out_path}")
+for intent, cnt in intent_counts.items():
+    print(f"  {intent}: {cnt:,}")
