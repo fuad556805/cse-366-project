@@ -3,12 +3,18 @@ main.py
 
 Kaj: NL -> SQL pipeline interactive mode.
 Ekbar run korlei bar bar proshno kora jabe.
+
+Bug fixes:
+- Model ek-bar-i load kora hoy (protyek query-te abar load kora hoto, fixed)
+- schema["Gender"] hardcode crash fix kora hoise
+- run_pipeline e model/vectorizer parameter hisebe pass kora hoy ekhon
 """
 
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "core"))
+# "core" folder-ke Python path-e add kora jate shob module import hoy
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "core"))
 
 from dataset_loader import load_dataset
 from schema_reader import read_schema
@@ -19,10 +25,14 @@ from sql_executor import execute_query
 from response import print_result
 
 
-def run_pipeline(df, schema, question, db_path="data/database.db", table_name="data"):
-    """Pura pipeline chalao – df, schema, question diye."""
+def run_pipeline(df, schema, question, model, vectorizer,
+                 db_path="data/database.db", table_name="data"):
+    """
+    Pura pipeline chalao — df, schema, question, model, vectorizer diye.
+    Model ekhane load kora hoy na, main() theke pass kora hoy.
+    """
+
     # Step 1: Intent detect
-    model, vectorizer = load_model("models/intent_model.pkl", "models/vectorizer.pkl")
     intent = predict_intent(question, model, vectorizer)
 
     # Step 2: Internal query banano
@@ -31,6 +41,7 @@ def run_pipeline(df, schema, question, db_path="data/database.db", table_name="d
     # Step 3: SQL string generate
     sql = query_to_sql(query, table_name)
 
+    # Debug info
     print("Detected intent :", intent)
     print("Internal query  :", query)
     print("Generated SQL   :", sql)
@@ -56,29 +67,47 @@ def run_pipeline(df, schema, question, db_path="data/database.db", table_name="d
 def main():
     print("=== NL to SQL AI (Interactive Mode) ===")
 
-    # --- CSV + schema ekbar load koro (porer question e abar load kora lagbe na) ---
+    # CSV + schema ekbar load koro
     csv_path = input("CSV file path din (default: data/sample.csv): ").strip()
     if not csv_path:
         csv_path = "data/sample.csv"
 
     db_path = "data/database.db"
     table_name = "data"
-    df = load_dataset(csv_path, db_path, table_name)
+
+    try:
+        df = load_dataset(csv_path, db_path, table_name)
+    except FileNotFoundError as e:
+        print("Error:", e)
+        return
+
     schema = read_schema(df)
 
-    # Model + vectorizer ekbar load
-    model, vectorizer = load_model("models/intent_model.pkl", "models/vectorizer.pkl")
+    # Model + vectorizer shudhu ek-bar load kora hoy — protyek query-te
+    # abar load kora dorkar nei, tai main()-e rakha hoise.
+    try:
+        model, vectorizer = load_model("models/intent_model.pkl",
+                                       "models/vectorizer.pkl")
+    except FileNotFoundError:
+        print("Error: Model file paoa jay nai. Prothome train koran:")
+        print("  python3 models/train_intent.py")
+        return
 
-    print("\nEkhon joto khushi proshno korte paren. 'exit' likhe ber hoye jaben.")
+    print("\nEkhon joto khushi proshno korte paren.")
+    print("'exit' likhe ber hoye jaben.")
     print("'change_csv' likhe notun CSV file load korte parben.\n")
 
     while True:
-        question = input("Apnar proshno: ").strip()
+        try:
+            question = input("Apnar proshno: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nBye bye!")
+            break
 
         if not question:
             continue
 
-        if question.lower() in ["exit", "quit", "q"]:
+        if question.lower() in ("exit", "quit", "q"):
             print("Bye bye!")
             break
 
@@ -94,9 +123,8 @@ def main():
             continue
 
         # Pipeline chalao
-        run_pipeline(df, schema, question, db_path, table_name)
+        run_pipeline(df, schema, question, model, vectorizer, db_path, table_name)
         print("\n" + "-" * 50 + "\n")
-        print(schema["Gender"])
 
 
 if __name__ == "__main__":

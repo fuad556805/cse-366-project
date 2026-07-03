@@ -7,7 +7,10 @@ bad deya.
 
 Example:
   Input:  "Show female patients older than 30"
-  Output: ["female", "patients", "older", "than", "30"]
+  Output: ["female", "patients", "older", "30"]
+
+Note: tokenizer pipeline-e directly use hoy na (sql_generator raw
+question use kore), kintu tests ebong utility hisebe maintain kora hoise.
 """
 
 import os
@@ -21,13 +24,15 @@ def load_stopwords(path="knowledge/stopwords.json"):
         return []
 
     with open(path, "r", encoding="utf-8") as f:
-        stopwords = json.load(f)
-
-    return stopwords
+        return json.load(f)
 
 
 def clean_text(text):
-    """Text ke lowercase kore ebong extra symbol (,.!? etc) shorai."""
+    """
+    Text ke lowercase kore ebong extra punctuation (,.!? etc) shorai.
+    Note: digits, letters ebong space rakha hoy — hyphen ba apostrophe
+    o space diye replace hoy jate word split thik thake.
+    """
     text = text.lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -42,9 +47,7 @@ def tokenize(text, stopwords_path="knowledge/stopwords.json"):
     stopwords = load_stopwords(stopwords_path)
     cleaned = clean_text(text)
     tokens = cleaned.split()
-
     tokens = [t for t in tokens if t not in stopwords]
-
     return tokens
 
 

@@ -1,0 +1,103 @@
+My project is an NL-to-SQL AI written in Python.
+
+Please analyze the entire project, identify all bugs, and fix them without changing the existing project structure or file names.
+
+Project Goal:
+- The system must work with ANY user-uploaded CSV dataset.
+- The dataset schema is unknown beforehand.
+- No hardcoded column names, values, or dataset-specific logic should exist.
+- The system should automatically adapt to different datasets.
+
+Requirements:
+
+1. Analyze the complete pipeline:
+   - dataset_loader.py
+   - schema_reader.py
+   - tokenizer.py
+   - intent_detector.py
+   - operator_detector.py
+   - attribute_matcher.py
+   - value_matcher.py
+   - sql_generator.py
+   - sql_validator.py
+   - sql_executor.py
+   - response.py
+   - main.py
+
+2. Find and fix every issue that prevents the system from working correctly.
+
+3. The system must correctly detect:
+   - intent
+   - columns
+   - operators
+   - numeric values
+   - categorical values
+   - multiple filters
+   - aggregate columns
+
+4. It must work with any dataset regardless of:
+   - column names
+   - number of columns
+   - data types
+   - categorical values
+   - numeric values
+
+5. Do NOT hardcode anything like:
+   - Gender
+   - Age
+   - GPA
+   - Salary
+   - Student
+   - Patient
+   - Employee
+
+Everything must be inferred dynamically from the uploaded dataset schema.
+
+6. Improve schema detection:
+   - Infer data types correctly.
+   - Detect categorical columns.
+   - Detect numeric columns.
+   - Store enough unique values for categorical matching without hurting performance.
+
+7. Improve value matching:
+   - Detect categorical values regardless of case.
+   - Support values containing spaces.
+   - Prevent partial-word false matches.
+   - Support binary values (0/1, Yes/No, True/False) by inferring meanings when possible.
+   - Support multiple categorical filters.
+
+8. Improve attribute matching:
+   - Use fuzzy matching.
+   - Use synonyms.
+   - Avoid incorrect matches.
+   - Work with unknown column names.
+
+9. Improve SQL generation:
+   Support:
+   - SELECT
+   - COUNT
+   - SUM
+   - AVG
+   - MAX
+   - MIN
+   - WHERE
+   - multiple WHERE conditions
+   - AND
+   - ORDER BY
+   - LIMIT
+   - DISTINCT (if applicable)
+
+10. Add detailed debug logging for:
+   - detected intent
+   - matched columns
+   - matched categorical values
+   - matched numeric values
+   - operators
+   - generated internal query
+   - generated SQL
+
+11. Do not break existing functionality.
+
+12. Keep the code clean, modular, beginner-friendly, and well commented.
+
+13. Optimize performance where possible.

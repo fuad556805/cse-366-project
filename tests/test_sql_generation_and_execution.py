@@ -2,6 +2,10 @@
 test_sql_generation_and_execution.py
 
 sql_generator ebong sql_executor module test kora (end-to-end style).
+
+Note: sql_generator ekhon double-quoted identifiers use kore
+(jemon "Gender", "Age", "data") jate multi-word column names
+valid SQL produce kore. Tests sei format-e update kora hoise.
 """
 
 from dataset_loader import load_dataset
@@ -18,8 +22,9 @@ def test_select_with_filters(tmp_path):
     query = build_query("show female patients older than 30", schema, "SELECT")
     sql = query_to_sql(query)
 
-    assert "Gender = 'Female'" in sql
-    assert "Age > 30" in sql
+    # Double-quoted identifier format check
+    assert '"Gender" = \'Female\'' in sql
+    assert '"Age" > 30' in sql
 
 
 def test_count_query(tmp_path):
@@ -31,7 +36,7 @@ def test_count_query(tmp_path):
     sql = query_to_sql(query)
 
     assert sql.startswith("SELECT COUNT(*)")
-    assert "District = 'Dhaka'" in sql
+    assert '"District" = \'Dhaka\'' in sql
 
 
 def test_avg_query_has_agg_column(tmp_path):
@@ -43,7 +48,7 @@ def test_avg_query_has_agg_column(tmp_path):
     assert query["agg_column"] == "Age"
 
     sql = query_to_sql(query)
-    assert sql == "SELECT AVG(Age) FROM data"
+    assert sql == 'SELECT AVG("Age") FROM "data"'
 
 
 def test_query_executes_and_returns_rows(tmp_path):
