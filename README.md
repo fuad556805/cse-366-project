@@ -1,4 +1,4 @@
-# nl2sql_ai — Natural Language to SQL AI
+# nl2sql_ai — Natural Language to SQL Query Generation System
 
 A hybrid AI system that converts plain English questions into executable SQL queries. It works with **any CSV dataset** — no hardcoded column names, no dataset-specific logic. Just upload a CSV and ask questions in English.
 
