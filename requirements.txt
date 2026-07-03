@@ -3,3 +3,9 @@ scikit-learn
 rapidfuzz
 pytest
 datasets==2.21.0
+flask
+flask
+pandas
+rapidfuzz
+response
+scikit-learn

@@ -4,11 +4,21 @@ A hybrid NL-to-SQL AI written in Python. Converts natural language questions int
 
 ## How to run
 
+### Web application (default — runs in browser)
+
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the interactive pipeline (pre-trained models already included)
+# Start the Flask web server
+python app.py
+```
+
+Open the app in your browser. Upload any CSV, then type a plain-English question and click **Ask**.
+
+### CLI (original interactive mode)
+
+```bash
 python3 main.py
 ```
 

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Natural Language to SQL</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header { margin-bottom: 36px; }
+    .header h1 { font-size: 1.75rem; font-weight: 700; color: #111; }
+    .header p  { margin-top: 6px; font-size: 0.95rem; color: #555; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+
+    /* ── Upload zone ── */
+    #drop-zone {
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      padding: 56px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      background: #fafafa;
+    }
+    #drop-zone:hover, #drop-zone.dragover {
+      border-color: #333;
+      background: #f0f0f0;
+    }
+    #drop-zone .upload-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 18px;
+    }
+    #drop-zone .upload-icon svg { width: 22px; height: 22px; stroke: #333; }
+    #drop-zone h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; color: #111; }
+    #drop-zone p  { font-size: 0.85rem; color: #666; margin-bottom: 14px; }
+    .badge-row { display: flex; gap: 8px; justify-content: center; }
+    .badge {
+      font-size: 0.75rem; font-weight: 500; color: #555;
+      border: 1px solid #ddd; border-radius: 4px;
+      padding: 3px 10px; background: #fff;
+    }
+
+    /* hidden file input */
+    #file-input { display: none; }
+
+    /* ── Upload success strip ── */
+    #upload-info {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 0.88rem;
+      color: #333;
+    }
+    #upload-info .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; flex-shrink: 0;
+    }
+    #upload-info strong { font-weight: 600; }
+    #upload-info .meta  { margin-left: auto; color: #888; font-size: 0.82rem; }
+    #change-file-btn {
+      margin-left: 8px; font-size: 0.82rem; color: #555;
+      background: none; border: 1px solid #ddd; border-radius: 5px;
+      padding: 3px 10px; cursor: pointer; transition: background .15s;
+    }
+    #change-file-btn:hover { background: #eee; }
+
+    /* ── Data requirements box ── */
+    .req-box {
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-top: 20px;
+      background: #fafafa;
+    }
+    .req-box .req-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #888; margin-bottom: 10px;
+    }
+    .req-box ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .req-box li { font-size: 0.84rem; color: #555; display: flex; gap: 8px; }
+    .req-box li::before { content: "→"; color: #999; flex-shrink: 0; }
+
+    /* ── Section hidden until CSV loaded ── */
+    #query-section { display: none; }
+
+    /* ── Ask row ── */
+    .ask-row { display: flex; gap: 10px; align-items: flex-start; }
+    .ask-row label { display: block; font-size: 0.82rem; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .ask-row .input-wrap { flex: 1; }
+    #question-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #d1d1d1;
+      border-radius: 8px;
+      font-size: 0.93rem;
+      color: #111;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #question-input:focus { border-color: #333; }
+    #ask-btn {
+      padding: 11px 24px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 24px;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    #ask-btn:hover:not(:disabled) { background: #333; }
+    #ask-btn:disabled { background: #999; cursor: not-allowed; }
+
+    /* ── SQL display ── */
+    #sql-block { display: none; margin-top: 20px; }
+    .sql-label {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: #888; margin-bottom: 8px;
+    }
+    .sql-code {
+      background: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.86rem;
+      color: #1a1a1a;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .intent-badge {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 600;
+      background: #f0f0f0; border: 1px solid #ddd;
+      border-radius: 4px; padding: 2px 9px;
+      color: #444; margin-bottom: 10px;
+    }
+
+    /* ── Error ── */
+    .error-box {
+      background: #fff5f5; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 14px 18px;
+      color: #b91c1c; font-size: 0.88rem; margin-top: 16px;
+    }
+
+    /* ── Results table ── */
+    #results-block { display: none; margin-top: 20px; }
+    .results-meta {
+      font-size: 0.82rem; color: #666; margin-bottom: 10px;
+    }
+    .results-meta strong { color: #111; }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    thead tr { background: #f7f7f7; }
+    th {
+      text-align: left; padding: 10px 14px;
+      font-weight: 600; color: #333;
+      border-bottom: 1px solid #e0e0e0;
+      white-space: nowrap;
+    }
+    td {
+      padding: 9px 14px; color: #444;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    .no-results {
+      padding: 28px; text-align: center;
+      color: #888; font-size: 0.9rem;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .ask-row { flex-direction: column; }
+      #ask-btn { margin-top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Natural Language to SQL</h1>
+    <p>Upload a CSV dataset and ask questions in plain English — the AI generates and runs the SQL for you.</p>
+  </div>
+
+  <!-- Global error banner (shown for upload errors before CSV is loaded) -->
+  <div id="global-error" class="error-box" style="display:none; margin-bottom:16px;"></div>
+
+  <!-- Upload card -->
+  <div class="card">
+    <input type="file" id="file-input" accept=".csv" />
+
+    <div id="drop-zone">
+      <div class="upload-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/>
+          <line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+        </svg>
+      </div>
+      <h3>Drag &amp; Drop your file here</h3>
+      <p>or click anywhere in this area to browse</p>
+      <div class="badge-row">
+        <span class="badge">CSV</span>
+      </div>
+    </div>
+
+    <!-- Upload success strip -->
+    <div id="upload-info">
+      <span class="dot"></span>
+      <span id="upload-filename"><strong>—</strong></span>
+      <span class="meta" id="upload-meta"></span>
+      <button id="change-file-btn">Change file</button>
+    </div>
+
+    <!-- Data requirements -->
+    <div class="req-box">
+      <div class="req-title">Data Requirements</div>
+      <ul>
+        <li>First row must contain column headers.</li>
+        <li>Supports any CSV with text and numeric columns.</li>
+        <li>Column names should be descriptive (e.g. "Age", "District", "Gender").</li>
+        <li>Larger datasets work fine — only schema &amp; sample values are read into memory.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Query + Results card (hidden until CSV loaded) -->
+  <div class="card" id="query-section">
+
+    <div class="ask-row">
+      <div class="input-wrap">
+        <label for="question-input">Ask a question about your data</label>
+        <input
+          type="text"
+          id="question-input"
+          placeholder='e.g. "show female patients older than 30 from Dhaka"'
+          autocomplete="off"
+        />
+      </div>
+      <button id="ask-btn">Ask</button>
+    </div>
+
+    <!-- SQL output -->
+    <div id="sql-block">
+      <div style="margin-top:20px;">
+        <div class="sql-label">Generated SQL</div>
+        <div class="intent-badge" id="intent-label"></div>
+        <div class="sql-code" id="sql-output"></div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="error-box" class="error-box" style="display:none;"></div>
+
+    <!-- Results table -->
+    <div id="results-block">
+      <div class="sql-label" style="margin-top:20px;">Query Results</div>
+      <div class="results-meta" id="results-meta"></div>
+      <div class="table-wrap">
+        <table id="results-table">
+          <thead id="results-thead"></thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const dropZone   = document.getElementById("drop-zone");
+  const fileInput  = document.getElementById("file-input");
+  const uploadInfo = document.getElementById("upload-info");
+  const uploadFilename = document.getElementById("upload-filename");
+  const uploadMeta = document.getElementById("upload-meta");
+  const changeBtn  = document.getElementById("change-file-btn");
+  const querySection = document.getElementById("query-section");
+  const questionInput = document.getElementById("question-input");
+  const askBtn     = document.getElementById("ask-btn");
+  const sqlBlock   = document.getElementById("sql-block");
+  const sqlOutput  = document.getElementById("sql-output");
+  const intentLabel = document.getElementById("intent-label");
+  const errorBox   = document.getElementById("error-box");
+  const resultsBlock = document.getElementById("results-block");
+  const resultsMeta  = document.getElementById("results-meta");
+  const resultsThead = document.getElementById("results-thead");
+  const resultsTbody = document.getElementById("results-tbody");
+
+  // ── Drag & drop ──
+  dropZone.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+  dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  });
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+  });
+  changeBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  function uploadFile(file) {
+    document.getElementById("global-error").style.display = "none";
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      showGlobalError("Only CSV files are supported.");
+      return;
+    }
+
+    // Optimistic UI: show uploading state
+    dropZone.style.display = "none";
+    uploadInfo.style.display = "flex";
+    uploadFilename.innerHTML = `<strong>${file.name}</strong>`;
+    uploadMeta.textContent = "Uploading…";
+    querySection.style.display = "none";
+    clearResults();
+
+    const form = new FormData();
+    form.append("file", file);
+
+    fetch("/upload", { method: "POST", body: form })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          resetUpload();
+          showGlobalError(data.error);
+          return;
+        }
+        uploadMeta.textContent = `${data.rows.toLocaleString()} rows · ${data.columns.length} columns`;
+        querySection.style.display = "block";
+        questionInput.focus();
+      })
+      .catch(() => {
+        resetUpload();
+        showGlobalError("Upload failed. Please try again.");
+      });
+  }
+
+  function resetUpload() {
+    dropZone.style.display = "";
+    uploadInfo.style.display = "none";
+    fileInput.value = "";
+  }
+
+  // ── Ask ──
+  askBtn.addEventListener("click", runQuery);
+  questionInput.addEventListener("keydown", e => { if (e.key === "Enter") runQuery(); });
+
+  function runQuery() {
+    const question = questionInput.value.trim();
+    if (!question) { questionInput.focus(); return; }
+
+    askBtn.disabled = true;
+    askBtn.innerHTML = '<span class="spinner"></span>Running…';
+    clearResults();
+
+    fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        askBtn.disabled = false;
+        askBtn.textContent = "Ask";
+
+        // Always show SQL if present
+        if (data.sql) {
+          sqlOutput.textContent = data.sql;
+          intentLabel.textContent = "Intent: " + (data.intent || "—");
+          sqlBlock.style.display = "block";
+        }
+
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+
+        // Results
+        if (data.columns && data.columns.length > 0) {
+          renderTable(data.columns, data.rows, data.count);
+        } else {
+          resultsBlock.style.display = "block";
+          resultsMeta.innerHTML = "<strong>0</strong> rows returned.";
+          resultsTbody.innerHTML = `<tr><td colspan="99" class="no-results">No results found.</td></tr>`;
+        }
+      })
+      .catch(() => {
+        askBtn.disabled = false;
+        askBtn.textContent = "Ask";
+        showError("Request failed. Please try again.");
+      });
+  }
+
+  function renderTable(columns, rows, count) {
+    resultsBlock.style.display = "block";
+    resultsMeta.innerHTML = `<strong>${count.toLocaleString()}</strong> row${count !== 1 ? "s" : ""} returned.`;
+
+    // Header
+    resultsThead.innerHTML = "<tr>" +
+      columns.map(c => `<th>${escHtml(String(c))}</th>`).join("") +
+      "</tr>";
+
+    // Body
+    if (rows.length === 0) {
+      resultsTbody.innerHTML = `<tr><td colspan="${columns.length}" class="no-results">No results found.</td></tr>`;
+    } else {
+      resultsTbody.innerHTML = rows.map(row =>
+        "<tr>" + row.map(cell => `<td>${escHtml(cell === null ? "NULL" : String(cell))}</td>`).join("") + "</tr>"
+      ).join("");
+    }
+  }
+
+  function showGlobalError(msg) {
+    const g = document.getElementById("global-error");
+    g.textContent = msg;
+    g.style.display = "block";
+  }
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.style.display = "block";
+  }
+
+  function clearResults() {
+    sqlBlock.style.display = "none";
+    errorBox.style.display = "none";
+    resultsBlock.style.display = "none";
+    sqlOutput.textContent = "";
+    intentLabel.textContent = "";
+    resultsThead.innerHTML = "";
+    resultsTbody.innerHTML = "";
+    resultsMeta.textContent = "";
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+</script>
+</body>
+</html>
