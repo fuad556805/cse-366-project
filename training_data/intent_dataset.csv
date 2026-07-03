@@ -1,0 +1,881 @@
+question,intent
+please whats the average age,AVG
+i want to what is the highest salary,MAX
+please find all students,SELECT
+please print all entries,SELECT
+could you find average price,AVG
+tell me give me a list of data,SELECT
+could you find customers,SELECT
+please sum of age,SUM
+please lowest price,MIN
+could you show data from dhaka,SELECT
+i want to find all items,SELECT
+please show entries where marks is 25,SELECT
+i need to what is the average income,AVG
+could you number of customers,COUNT
+i want to mean value of weight,AVG
+please print all people,SELECT
+tell me mean price,AVG
+could you show me students,SELECT
+i want to top age,MAX
+i want to whats the biggest score,MAX
+please how many people from rajshahi,COUNT
+can you add up salary,SUM
+could you what is the mean marks,AVG
+i want to what is the sum of age,SUM
+could you calculate average marks,AVG
+tell me maximum marks,MAX
+can you display all rows,SELECT
+i want to how many items do we have,COUNT
+tell me what is the lowest marks,MIN
+tell me greatest weight,MAX
+i want to count people,COUNT
+tell me total price,SUM
+i need to add up salary,SUM
+can you count all rows,COUNT
+could you how many entries are there in total,COUNT
+tell me count all customers,COUNT
+i need to find students with income less than 60,SELECT
+can you biggest salary,MAX
+could you find the biggest salary,MAX
+please list people with price greater than 25,SELECT
+tell me how many students are there in total,COUNT
+could you total entries count,COUNT
+could you give me data,SELECT
+tell me sum of weight,SUM
+please show me every customers,SELECT
+tell me list all items,SELECT
+minimum score,MIN
+i need to give me entries,SELECT
+i need to what is the total score,SUM
+i want to what is the maximum weight,MAX
+could you total number of data,COUNT
+please see all patients,SELECT
+tell me what is the mean income,AVG
+could you what is the lowest score,MIN
+whats the biggest income,MAX
+can you top score,MAX
+i need to retrieve items,SELECT
+tell me give me customers from khulna,SELECT
+how many data are there in total,COUNT
+can you top price,MAX
+can you whats the smallest height,MIN
+total income of customers,SUM
+i need to print all people,SELECT
+how many items are there,COUNT
+tell me show all records,SELECT
+please whats the average price,AVG
+i need to what is the mean weight,AVG
+tell me add up age,SUM
+can you total data count,COUNT
+could you see the people,SELECT
+i need to find all people,SELECT
+i want to tell me the lowest price,MIN
+lowest marks among rows,MIN
+could you show all patients,SELECT
+see the items,SELECT
+could you give me entries from rajshahi,SELECT
+tell me find entries with salary less than 50,SELECT
+can you whats the lowest weight,MIN
+could you show people where income is 25,SELECT
+tell me show me students,SELECT
+i need to whats the highest height,MAX
+can you what is the lowest price,MIN
+i want to total number of rows,COUNT
+could you how many people from chittagong,COUNT
+could you show customers where weight is 30,SELECT
+i need to find average salary,AVG
+what is the sum of height,SUM
+i need to what is the minimum income,MIN
+could you highest weight among people,MAX
+i need to find records,SELECT
+get items,SELECT
+please how many items,COUNT
+how many people from khulna,COUNT
+please how many patients,COUNT
+please show me every items,SELECT
+i want to display all records,SELECT
+count patients where age is 100,COUNT
+can you give me items,SELECT
+tell me tell me the smallest price,MIN
+i want to how many records are there in total,COUNT
+i want to whats the highest weight,MAX
+can you find the smallest weight,MIN
+i need to number of rows,COUNT
+can you find the smallest age,MIN
+whats the average height,AVG
+i want to how many students,COUNT
+tell me fetch entries,SELECT
+how many entries with score greater than 60,COUNT
+how many people with salary greater than 30,COUNT
+can you tell me the highest height,MAX
+could you retrieve people,SELECT
+please max weight,MAX
+i need to count all rows,COUNT
+mean value of height,AVG
+could you highest price,MAX
+i need to show me customers,SELECT
+please tell me the biggest income,MAX
+could you give me people from sylhet,SELECT
+tell me the biggest price,MAX
+could you how many records,COUNT
+i need to get all rows,SELECT
+tell me give me a list of students,SELECT
+i want to show me every entries,SELECT
+i need to give me a list of data,SELECT
+tell me the smallest marks,MIN
+could you tell me the highest price,MAX
+i want to what is the lowest marks,MIN
+tell me whats the smallest salary,MIN
+i want to show records where height is 18,SELECT
+i need to show all students,SELECT
+can you minimum score,MIN
+i need to tell me the lowest marks,MIN
+i want to lowest salary,MIN
+please total income of records,SUM
+please sum up all the age,SUM
+can you display patients,SELECT
+could you what is the count of entries from dhaka,COUNT
+tell me find average salary,AVG
+what is the lowest salary,MIN
+can you how many rows,COUNT
+what is the minimum marks,MIN
+i need to average score of records from khulna,AVG
+please whats the total weight,SUM
+can you what is the count of rows,COUNT
+could you show people where income is 30,SELECT
+tell me what is the total marks,SUM
+could you whats the average price,AVG
+can you total price,SUM
+find the smallest weight,MIN
+tell me smallest height,MIN
+i want to what is the highest marks,MAX
+could you whats the lowest price,MIN
+tell me what is the sum of income,SUM
+i want to see all records,SELECT
+could you how many items,COUNT
+tell me who are the entries,SELECT
+please least age,MIN
+total number of items,COUNT
+i need to what is the highest price,MAX
+please how many customers do we have,COUNT
+can you find the lowest income,MIN
+i need to what is the average score,AVG
+please find the biggest height,MAX
+i need to what is the maximum weight,MAX
+i need to add up score,SUM
+can you list people,SELECT
+could you what is the maximum weight,MAX
+tell me give me people from rajshahi,SELECT
+i want to find the smallest marks,MIN
+i want to mean value of weight,AVG
+whats the total weight,SUM
+total rows count,COUNT
+tell me minimum height,MIN
+please minimum weight,MIN
+i want to average marks of entries,AVG
+i need to lowest marks,MIN
+what is the highest score,MAX
+i need to get rows,SELECT
+i want to tell me the smallest height,MIN
+could you largest weight,MAX
+maximum weight,MAX
+can you average price of patients from rajshahi,AVG
+can you find the lowest income,MIN
+i need to give me a list of customers,SELECT
+could you show patients where price is 50,SELECT
+i want to highest price among patients,MAX
+tell me what is the maximum income,MAX
+could you see all rows,SELECT
+can you average income,AVG
+could you fetch rows,SELECT
+i want to find students with height less than 25,SELECT
+can you lowest marks,MIN
+i want to what is the sum of score,SUM
+please tell me the smallest age,MIN
+can you average weight,AVG
+i need to display people,SELECT
+what is the mean height,AVG
+could you find items with score less than 25,SELECT
+could you least age,MIN
+please fetch students,SELECT
+i want to whats the highest salary,MAX
+i want to what is the count of people,COUNT
+please what is the mean height,AVG
+i want to mean value of score,AVG
+i want to how many people are there,COUNT
+tell me tell me the lowest height,MIN
+please tell me the smallest price,MIN
+tell me lowest salary among rows,MIN
+i need to top marks,MAX
+i need to maximum weight,MAX
+fetch customers,SELECT
+i need to get all students,SELECT
+see all records,SELECT
+please count items where price is 100,COUNT
+can you display all people,SELECT
+tell me list patients,SELECT
+can you show me rows,SELECT
+can you sum age,SUM
+could you tell me the lowest price,MIN
+could you show me records,SELECT
+i want to min income,MIN
+i want to how many people are there in total,COUNT
+can you whats the average marks,AVG
+find the highest salary,MAX
+can you find customers with marks less than 25,SELECT
+tell me see the items,SELECT
+can you greatest height,MAX
+i need to sum up all the height,SUM
+please display all students,SELECT
+please count records where salary is 60,COUNT
+i want to whats the smallest age,MIN
+could you print all patients,SELECT
+could you calculate average score,AVG
+please what is the count of people,COUNT
+i want to sum of income,SUM
+please display patients,SELECT
+what is the lowest marks,MIN
+tell me count students where salary is 25,COUNT
+tell me show records where marks is 30,SELECT
+i need to whats the lowest price,MIN
+i want to show me every data,SELECT
+average score,AVG
+i want to how many people from rajshahi,COUNT
+please how many people are there,COUNT
+least height,MIN
+mean weight,AVG
+i want to find average price,AVG
+tell me list all data,SELECT
+please who are the rows,SELECT
+tell me total records count,COUNT
+i need to maximum age,MAX
+whats the total income,SUM
+please highest score among data,MAX
+please whats the smallest age,MIN
+lowest income among people,MIN
+tell me largest income,MAX
+tell me maximum age,MAX
+please how many students do we have,COUNT
+can you find the biggest price,MAX
+could you count data where marks is 30,COUNT
+highest height among patients,MAX
+please what is the lowest age,MIN
+whats the total price,SUM
+i need to sum up all the age,SUM
+please tell me the biggest income,MAX
+i want to min weight,MIN
+i want to mean value of income,AVG
+can you list students with height greater than 30,SELECT
+find the lowest price,MIN
+can you maximum age,MAX
+can you min height,MIN
+how many customers do we have,COUNT
+whats the smallest price,MIN
+can you sum up age,SUM
+tell me how many rows from rajshahi,COUNT
+i want to how many rows with price greater than 100,COUNT
+could you give me items from dhaka,SELECT
+tell me whats the lowest salary,MIN
+i need to largest price,MAX
+find the highest age,MAX
+i need to what is the count of rows from khulna,COUNT
+see the students,SELECT
+i need to how many people are there,COUNT
+can you lowest score among people,MIN
+retrieve items,SELECT
+can you average age of data from khulna,AVG
+can you highest marks,MAX
+could you find customers with income less than 30,SELECT
+could you sum weight,SUM
+could you tell me the lowest income,MIN
+please lowest height,MIN
+how many people are there,COUNT
+sum weight,SUM
+could you what is the mean weight,AVG
+please find data,SELECT
+list data with height greater than 60,SELECT
+i want to what is the minimum score,MIN
+i need to sum up age,SUM
+could you what is the minimum weight,MIN
+top salary,MAX
+please whats the average marks,AVG
+please show me every rows,SELECT
+could you what is the minimum income,MIN
+i need to count records,COUNT
+please highest salary among people,MAX
+please find the lowest height,MIN
+biggest age,MAX
+i want to get data,SELECT
+tell me give me a list of students,SELECT
+what is the count of items from khulna,COUNT
+what is the count of rows,COUNT
+can you how many patients are there,COUNT
+total height of rows,SUM
+can you total marks of students,SUM
+please average salary of items from khulna,AVG
+i need to whats the total weight,SUM
+i need to mean value of age,AVG
+please who are the customers,SELECT
+tell me tell me the smallest income,MIN
+i want to whats the biggest height,MAX
+could you smallest height,MIN
+could you find rows with salary less than 30,SELECT
+highest income among records,MAX
+can you average price of people,AVG
+i need to tell me the highest marks,MAX
+tell me find people,SELECT
+could you lowest price,MIN
+tell me list patients with income greater than 25,SELECT
+i want to tell me the highest income,MAX
+can you count rows,COUNT
+i need to how many records do we have,COUNT
+how many records do we have,COUNT
+could you whats the highest score,MAX
+i want to max income,MAX
+please add up marks,SUM
+tell me what is the total salary,SUM
+please lowest age,MIN
+i need to what is the sum of age,SUM
+please number of entries,COUNT
+i want to find average income,AVG
+i want to whats the biggest marks,MAX
+please largest weight,MAX
+tell me how many students,COUNT
+i want to whats the highest height,MAX
+greatest marks,MAX
+can you list all items,SELECT
+tell me tell me the biggest score,MAX
+tell me see all patients,SELECT
+could you get all customers,SELECT
+i need to sum marks,SUM
+can you give me customers,SELECT
+could you tell me the lowest weight,MIN
+tell me whats the highest salary,MAX
+please maximum weight,MAX
+please what is the minimum age,MIN
+i need to what is the highest income,MAX
+i need to find the lowest price,MIN
+i want to total number of customers,COUNT
+can you find average income,AVG
+i need to average score,AVG
+highest salary,MAX
+tell me sum of marks,SUM
+please average price of items,AVG
+please count entries,COUNT
+highest marks,MAX
+can you how many people from dhaka,COUNT
+please display all students,SELECT
+please list entries with income greater than 25,SELECT
+could you find the lowest height,MIN
+could you max income,MAX
+can you biggest score,MAX
+i want to what is the count of rows from sylhet,COUNT
+least weight,MIN
+tell me whats the total height,SUM
+could you sum up all the salary,SUM
+tell me calculate average height,AVG
+could you give me a list of people,SELECT
+can you print all records,SELECT
+i need to retrieve records,SELECT
+can you list rows with income greater than 30,SELECT
+please add up income,SUM
+tell me top marks,MAX
+i want to give me data,SELECT
+biggest marks,MAX
+please what is the count of customers,COUNT
+can you what is the mean age,AVG
+can you total data count,COUNT
+could you what is the lowest age,MIN
+i want to sum up all the marks,SUM
+could you tell me the biggest income,MAX
+count entries,COUNT
+tell me retrieve people,SELECT
+tell me whats the smallest salary,MIN
+can you list all people,SELECT
+could you count customers where income is 25,COUNT
+i need to see the people,SELECT
+please sum up income,SUM
+can you find all rows,SELECT
+could you total students count,COUNT
+could you average weight of customers,AVG
+display all customers,SELECT
+tell me minimum weight,MIN
+tell me sum up all the height,SUM
+i want to find the biggest salary,MAX
+tell me total age of data,SUM
+could you mean value of weight,AVG
+i want to get all customers,SELECT
+could you display people,SELECT
+can you find all patients,SELECT
+list all patients,SELECT
+can you mean height,AVG
+total height of rows,SUM
+i need to highest height,MAX
+can you average income of records,AVG
+please min height,MIN
+find records with age less than 100,SELECT
+could you total number of rows,COUNT
+can you average weight,AVG
+tell me show me every patients,SELECT
+please number of items,COUNT
+could you find average weight,AVG
+can you how many entries from rajshahi,COUNT
+please get entries,SELECT
+display patients,SELECT
+total score,SUM
+please find all people,SELECT
+can you count people where score is 60,COUNT
+can you find items,SELECT
+tell me top score,MAX
+tell me give me a list of entries,SELECT
+could you calculate average marks,AVG
+i need to find the highest height,MAX
+please whats the biggest salary,MAX
+i need to what is the total height,SUM
+please tell me the smallest income,MIN
+i want to show records where salary is 50,SELECT
+please how many rows are there in total,COUNT
+how many entries are there in total,COUNT
+i want to find the highest weight,MAX
+i need to get all people,SELECT
+please fetch patients,SELECT
+could you list rows,SELECT
+can you find the smallest age,MIN
+i need to how many rows do we have,COUNT
+tell me tell me the highest price,MAX
+count all entries,COUNT
+can you smallest marks,MIN
+i want to total age,SUM
+can you show me every people,SELECT
+please sum up height,SUM
+i need to greatest weight,MAX
+tell me sum up income,SUM
+i need to what is the mean score,AVG
+can you total number of students,COUNT
+i want to whats the biggest price,MAX
+find the smallest salary,MIN
+i need to total records count,COUNT
+could you how many people are there in total,COUNT
+could you largest salary,MAX
+average income of people from chittagong,AVG
+sum weight,SUM
+can you whats the lowest marks,MIN
+total salary of people,SUM
+please what is the maximum salary,MAX
+i want to how many students with weight greater than 18,COUNT
+could you fetch rows,SELECT
+i want to how many rows do we have,COUNT
+please highest age,MAX
+i want to find average marks,AVG
+can you find the smallest income,MIN
+could you whats the lowest income,MIN
+can you tell me the smallest score,MIN
+tell me top height,MAX
+tell me find items,SELECT
+i want to biggest salary,MAX
+please sum salary,SUM
+count students,COUNT
+i want to show me customers,SELECT
+can you whats the biggest salary,MAX
+mean weight,AVG
+please who are the records,SELECT
+could you whats the lowest marks,MIN
+i want to show data from dhaka,SELECT
+could you whats the average weight,AVG
+i want to what is the average score,AVG
+i need to see the people,SELECT
+can you what is the highest price,MAX
+i want to count data where price is 25,COUNT
+tell me fetch students,SELECT
+find the smallest income,MIN
+i want to whats the lowest weight,MIN
+please smallest salary,MIN
+could you smallest price,MIN
+could you greatest height,MAX
+i need to whats the average income,AVG
+i need to list people with price greater than 18,SELECT
+i need to list all entries,SELECT
+i want to what is the maximum weight,MAX
+what is the count of students,COUNT
+i want to show me every entries,SELECT
+number of data,COUNT
+average weight,AVG
+can you sum salary,SUM
+please list all data,SELECT
+i need to count people where price is 18,COUNT
+i want to what is the count of students from sylhet,COUNT
+please what is the highest price,MAX
+i want to show all patients,SELECT
+i want to smallest marks,MIN
+i want to display all patients,SELECT
+tell me how many customers from khulna,COUNT
+can you minimum salary,MIN
+tell me show me items,SELECT
+i want to add up weight,SUM
+could you lowest marks among records,MIN
+i want to average height of rows,AVG
+could you whats the smallest height,MIN
+what is the average height,AVG
+tell me average age of records,AVG
+please how many entries are there,COUNT
+tell me find patients with age less than 25,SELECT
+i need to give me customers,SELECT
+could you sum of age,SUM
+what is the total marks,SUM
+please tell me the biggest price,MAX
+could you give me entries,SELECT
+please give me a list of records,SELECT
+please list all customers,SELECT
+please minimum income,MIN
+tell me sum income,SUM
+can you show me every people,SELECT
+can you whats the biggest marks,MAX
+i want to give me rows,SELECT
+i need to what is the mean marks,AVG
+i want to print all people,SELECT
+min income,MIN
+can you mean value of score,AVG
+i need to max income,MAX
+print all patients,SELECT
+display all items,SELECT
+show all customers,SELECT
+could you show patients where salary is 50,SELECT
+can you get entries,SELECT
+could you give me a list of rows,SELECT
+i want to find the highest salary,MAX
+please what is the sum of weight,SUM
+could you give me people from chittagong,SELECT
+count all patients,COUNT
+i need to list people,SELECT
+tell me highest height,MAX
+what is the lowest height,MIN
+min height,MIN
+i want to what is the sum of income,SUM
+could you average salary,AVG
+tell me greatest marks,MAX
+i need to add up salary,SUM
+total number of entries,COUNT
+tell me find the highest score,MAX
+could you how many patients are there,COUNT
+can you what is the average score,AVG
+could you sum of age,SUM
+tell me minimum weight,MIN
+tell me sum up score,SUM
+could you tell me the highest marks,MAX
+can you count customers,COUNT
+could you sum up score,SUM
+i want to calculate average income,AVG
+could you total age of patients,SUM
+find customers,SELECT
+i want to show all rows,SELECT
+tell me maximum price,MAX
+i need to lowest score among rows,MIN
+i want to show data from khulna,SELECT
+can you count all patients,COUNT
+tell me what is the count of entries from dhaka,COUNT
+tell me max weight,MAX
+tell me sum of salary,SUM
+i want to print all rows,SELECT
+please show students from sylhet,SELECT
+i want to what is the count of items,COUNT
+get customers,SELECT
+tell me what is the sum of score,SUM
+what is the highest weight,MAX
+tell me find the highest score,MAX
+please mean height,AVG
+could you retrieve items,SELECT
+could you sum up all the height,SUM
+display all items,SELECT
+tell me what is the maximum age,MAX
+could you list data with weight greater than 25,SELECT
+can you show entries from rajshahi,SELECT
+i want to what is the maximum height,MAX
+please how many data with score greater than 100,COUNT
+i need to give me people,SELECT
+i need to what is the count of people from dhaka,COUNT
+can you sum up age,SUM
+could you sum height,SUM
+i need to biggest age,MAX
+please count all entries,COUNT
+tell me display items,SELECT
+could you what is the minimum weight,MIN
+could you fetch students,SELECT
+i want to list records,SELECT
+could you fetch people,SELECT
+i need to whats the average salary,AVG
+could you total weight of items,SUM
+tell me show all students,SELECT
+can you how many customers are there,COUNT
+i need to highest price among patients,MAX
+tell me smallest income,MIN
+tell me see all rows,SELECT
+i want to how many data do we have,COUNT
+can you find the biggest salary,MAX
+tell me total number of customers,COUNT
+tell me mean value of height,AVG
+i need to list students,SELECT
+i need to average marks,AVG
+could you find all entries,SELECT
+please greatest marks,MAX
+please min age,MIN
+i need to give me records from khulna,SELECT
+i need to sum up all the salary,SUM
+i want to min weight,MIN
+calculate average price,AVG
+please min age,MIN
+i need to give me items from khulna,SELECT
+tell me who are the items,SELECT
+i want to whats the highest marks,MAX
+tell me find the highest price,MAX
+can you whats the smallest weight,MIN
+i want to how many rows are there in total,COUNT
+find customers with marks less than 18,SELECT
+i need to calculate average income,AVG
+tell me who are the patients,SELECT
+can you how many patients,COUNT
+please total income,SUM
+tell me sum of weight,SUM
+find the biggest height,MAX
+i want to how many records with height greater than 18,COUNT
+could you mean marks,AVG
+can you min salary,MIN
+smallest salary,MIN
+tell me list records,SELECT
+please number of entries,COUNT
+i need to greatest height,MAX
+count entries,COUNT
+please what is the average score,AVG
+could you max weight,MAX
+please show customers from sylhet,SELECT
+tell me what is the minimum price,MIN
+can you tell me the biggest income,MAX
+could you get all records,SELECT
+can you find the lowest price,MIN
+what is the count of people from chittagong,COUNT
+can you list all patients,SELECT
+please find the highest score,MAX
+please who are the people,SELECT
+tell me count all items,COUNT
+i need to display all items,SELECT
+i need to see the students,SELECT
+i need to how many records,COUNT
+i need to number of patients,COUNT
+retrieve students,SELECT
+i need to how many records do we have,COUNT
+please who are the students,SELECT
+can you display people,SELECT
+display people,SELECT
+please see the rows,SELECT
+what is the average weight,AVG
+please show me every data,SELECT
+i want to tell me the lowest age,MIN
+i want to whats the total marks,SUM
+i need to show me records,SELECT
+tell me mean value of salary,AVG
+can you number of rows,COUNT
+i need to what is the highest weight,MAX
+tell me mean height,AVG
+can you top height,MAX
+highest weight among students,MAX
+i want to highest score,MAX
+i want to what is the total marks,SUM
+i want to what is the count of records from rajshahi,COUNT
+i need to find data,SELECT
+can you total data count,COUNT
+what is the total income,SUM
+tell me find the highest price,MAX
+please largest score,MAX
+could you list data with income greater than 25,SELECT
+can you smallest weight,MIN
+please see all patients,SELECT
+tell me whats the smallest score,MIN
+can you what is the count of patients,COUNT
+please number of items,COUNT
+tell me tell me the biggest weight,MAX
+please print all records,SELECT
+tell me who are the students,SELECT
+please show patients from sylhet,SELECT
+could you minimum price,MIN
+could you whats the lowest score,MIN
+could you how many patients with weight greater than 25,COUNT
+tell me the smallest marks,MIN
+tell me count all rows,COUNT
+i want to greatest income,MAX
+please whats the highest age,MAX
+please what is the sum of income,SUM
+could you see the customers,SELECT
+tell me see all records,SELECT
+i want to total weight,SUM
+i want to count all data,COUNT
+could you what is the count of rows,COUNT
+find average age,AVG
+please total number of items,COUNT
+whats the total score,SUM
+could you find the lowest score,MIN
+tell me tell me the highest score,MAX
+mean income,AVG
+what is the average score,AVG
+i want to lowest weight among patients,MIN
+i need to how many data with score greater than 30,COUNT
+could you tell me the highest marks,MAX
+could you sum of height,SUM
+could you least marks,MIN
+i need to what is the average price,AVG
+can you get all students,SELECT
+tell me see all entries,SELECT
+please show records where salary is 30,SELECT
+please highest marks among items,MAX
+find the lowest weight,MIN
+list data with income greater than 50,SELECT
+i want to what is the total salary,SUM
+highest weight,MAX
+i want to highest salary among records,MAX
+please whats the total age,SUM
+tell me find the biggest price,MAX
+i want to list records,SELECT
+can you what is the highest height,MAX
+please show all patients,SELECT
+i need to add up price,SUM
+i need to see all rows,SELECT
+largest price,MAX
+i need to whats the biggest height,MAX
+please total marks,SUM
+whats the lowest price,MIN
+i need to average income of students from sylhet,AVG
+i want to find all entries,SELECT
+can you whats the biggest height,MAX
+can you what is the minimum height,MIN
+tell me total height,SUM
+i need to list entries,SELECT
+i need to mean height,AVG
+can you find data,SELECT
+could you how many records from chittagong,COUNT
+can you total height,SUM
+please give me items from rajshahi,SELECT
+can you average marks of customers from sylhet,AVG
+please show records from dhaka,SELECT
+could you find average salary,AVG
+tell me find all entries,SELECT
+tell me give me people from khulna,SELECT
+who are the students,SELECT
+could you tell me the highest income,MAX
+i want to how many patients are there,COUNT
+can you get all data,SELECT
+i want to average marks of rows,AVG
+can you lowest age among records,MIN
+please tell me the lowest price,MIN
+can you lowest score among entries,MIN
+tell me see the items,SELECT
+tell me biggest marks,MAX
+can you retrieve people,SELECT
+could you list records,SELECT
+can you get all students,SELECT
+can you find the smallest price,MIN
+i want to average score,AVG
+can you what is the maximum age,MAX
+can you find the biggest price,MAX
+can you number of patients,COUNT
+minimum score,MIN
+tell me what is the count of records from dhaka,COUNT
+i want to what is the total height,SUM
+show all items,SELECT
+i need to show customers from sylhet,SELECT
+i need to least price,MIN
+i want to tell me the smallest height,MIN
+i want to get entries,SELECT
+can you find people,SELECT
+tell me average age of items from khulna,AVG
+i want to sum of height,SUM
+i need to what is the total salary,SUM
+could you least salary,MIN
+tell me lowest age among items,MIN
+tell me maximum salary,MAX
+please whats the highest salary,MAX
+please tell me the biggest score,MAX
+tell me total height,SUM
+i want to max marks,MAX
+tell me total students count,COUNT
+i want to average age of customers from sylhet,AVG
+can you sum up age,SUM
+total age of students,SUM
+can you how many entries are there in total,COUNT
+how many entries from khulna,COUNT
+please average weight of items from rajshahi,AVG
+tell me what is the minimum height,MIN
+i need to least height,MIN
+could you print all entries,SELECT
+please max height,MAX
+can you greatest income,MAX
+i need to count items where marks is 100,COUNT
+tell me lowest age,MIN
+please whats the total age,SUM
+please whats the highest height,MAX
+i need to what is the sum of marks,SUM
+can you get items,SELECT
+can you show all records,SELECT
+could you find the biggest price,MAX
+please max income,MAX
+tell me list all people,SELECT
+could you mean score,AVG
+i need to average salary of rows,AVG
+can you get all records,SELECT
+please show me patients,SELECT
+smallest age,MIN
+could you tell me the lowest salary,MIN
+tell me biggest age,MAX
+tell me find all entries,SELECT
+how many rows with price greater than 25,COUNT
+can you calculate average marks,AVG
+please largest score,MAX
+could you get items,SELECT
+could you calculate average age,AVG
+i want to top height,MAX
+can you add up income,SUM
+i need to calculate average score,AVG
+can you whats the average income,AVG
+i need to give me a list of rows,SELECT
+i need to count data,COUNT
+tell me sum salary,SUM
+can you average height of people,AVG
+i want to average weight,AVG
+could you sum up all the price,SUM
+can you find the biggest score,MAX
+could you show items from khulna,SELECT
+tell me largest marks,MAX
+tell me display people,SELECT
+total number of records,COUNT
+could you total data count,COUNT
+i need to count patients,COUNT
+tell me how many entries with income greater than 100,COUNT
+please biggest marks,MAX
+can you tell me the lowest marks,MIN
+i want to give me data,SELECT
+tell me retrieve patients,SELECT
+could you biggest marks,MAX
+please maximum score,MAX
+i want to largest height,MAX
+could you retrieve students,SELECT
+please lowest marks,MIN
+show me rows,SELECT
+could you display data,SELECT
+i need to tell me the highest marks,MAX
+could you max price,MAX
+i need to sum up income,SUM
+please sum up all the income,SUM
+i need to fetch customers,SELECT
+what is the average salary,AVG
+lowest height,MIN
+i want to what is the lowest income,MIN
+can you least income,MIN
+can you what is the count of data,COUNT
+could you highest salary,MAX
+i want to how many students,COUNT
+i need to whats the smallest score,MIN
+i need to least salary,MIN
+please what is the mean salary,AVG
+could you get customers,SELECT
+can you tell me the biggest salary,MAX
+i want to find the smallest score,MIN
+could you find the lowest salary,MIN
+what is the maximum price,MAX

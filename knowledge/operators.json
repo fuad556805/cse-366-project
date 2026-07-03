@@ -1,0 +1,67 @@
+{
+  "greater than": ">",
+  "more than": ">",
+  "older than": ">",
+  "higher than": ">",
+  "larger than": ">",
+  "bigger than": ">",
+  "above": ">",
+  "over": ">",
+  "exceeding": ">",
+  "exceeds": ">",
+  "after": ">",
+  "later than": ">",
+
+  "greater than or equal to": ">=",
+  "more than or equal to": ">=",
+  "higher than or equal to": ">=",
+  "at least": ">=",
+  "minimum": ">=",
+  "not less than": ">=",
+
+  "less than": "<",
+  "younger than": "<",
+  "lower than": "<",
+  "smaller than": "<",
+  "below": "<",
+  "under": "<",
+  "before": "<",
+  "earlier than": "<",
+
+  "less than or equal to": "<=",
+  "lower than or equal to": "<=",
+  "at most": "<=",
+  "maximum": "<=",
+  "not more than": "<=",
+  "no more than": "<=",
+
+  "equal to": "=",
+  "equals": "=",
+  "equal": "=",
+  "exactly": "=",
+  "is": "=",
+  "same as": "=",
+
+  "not equal to": "!=",
+  "does not equal": "!=",
+  "is not": "!=",
+  "not": "!=",
+  "different from": "!=",
+
+  "between": "BETWEEN",
+  "not between": "NOT BETWEEN",
+
+  "in": "IN",
+  "not in": "NOT IN",
+
+  "like": "LIKE",
+  "contains": "LIKE",
+  "starts with": "LIKE",
+  "ends with": "LIKE",
+
+  "is null": "IS NULL",
+  "is empty": "IS NULL",
+
+  "is not null": "IS NOT NULL",
+  "is not empty": "IS NOT NULL"
+}

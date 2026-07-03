@@ -1,0 +1,54 @@
+{
+  "years": "age",
+  "yrs": "age",
+  "yr": "age",
+  "old": "age",
+  "older": "age",
+  "younger": "age",
+  "elder": "age",
+
+  "gender": "Gender",
+  "sex": "Gender",
+  "male": "Gender",
+  "female": "Gender",
+  "boy": "Gender",
+  "girl": "Gender",
+  "woman":"gender",
+  "man":"gender",
+
+  "cost": "price",
+  "amount": "price",
+  "fee": "price",
+  "rate": "price",
+  "cheap":"price",
+  "cheapest":"price",
+
+  "wage": "salary",
+  "pay": "salary",
+  "earning": "salary",
+  "earnings": "salary",
+
+  "grade": "marks",
+  "points": "marks",
+
+  "mobile": "contact",
+  "phone": "contact",
+
+  "mail": "email",
+
+  "dob": "date",
+
+  "dept": "department",
+
+  "review": "rating",
+  "stars": "rating",
+
+  "kg": "weight",
+
+  "cm": "height",
+
+  "qty": "quantity",
+
+  "identity": "id",
+  "code": "id"
+}

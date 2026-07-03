@@ -1,0 +1,5 @@
+pandas
+scikit-learn
+rapidfuzz
+pytest
+datasets==2.21.0
