@@ -15,7 +15,7 @@ Bug fixes:
 - match_categorical_values ekhon case-insensitive value compare kore
   original case ta filter-e use kore.
 - Partial-word false match prevention-er jonno \b word boundary theke
-  suru kore non-alphanumeric separator obdhi check kora hoy.
+  suru kore non-alphanumeric separator obdhi check kora hoy -.
 """
 
 import re
