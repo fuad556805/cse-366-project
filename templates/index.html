@@ -12,12 +12,42 @@
       background: #f5f5f5;
       color: #1a1a1a;
       min-height: 100vh;
-      padding: 40px 20px 80px;
+      padding: 24px 20px 80px;
     }
 
     .container {
       max-width: 900px;
       margin: 0 auto;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .navbar .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: #111;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+    .navbar .logo-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #111;
+      letter-spacing: -0.01em;
     }
 
     /* ── Header ── */
@@ -232,6 +262,13 @@
   </style>
 </head>
 <body>
+
+<!-- Navbar -->
+<div class="navbar">
+  <span class="logo-mark">N2S</span>
+  <span class="logo-text">nl2sql</span>
+</div>
+
 <div class="container">
 
   <!-- Header -->
