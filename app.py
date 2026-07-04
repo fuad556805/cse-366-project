@@ -140,7 +140,17 @@ def ask():
     # ── NL2SQL Pipeline ───────────────────────────────────────────────────
     intent = predict_intent(question, model, vectorizer)
     query  = build_query(question, schema, intent)
-    sql    = query_to_sql(query, TABLE_NAME)
+    try:
+        sql = query_to_sql(query, TABLE_NAME)
+    except ValueError as e:
+        # Column bhul kore guess na kore, clear error dekhano hoy
+        return jsonify({
+            "sql":     None,
+            "intent":  intent,
+            "error":   str(e),
+            "columns": [],
+            "rows":    [],
+        })
 
     is_valid, validation_msg = validate_sql(sql, schema, TABLE_NAME)
     if not is_valid:

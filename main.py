@@ -39,7 +39,12 @@ def run_pipeline(df, schema, question, model, vectorizer,
     query = build_query(question, schema, intent)
 
     # Step 3: SQL string generate
-    sql = query_to_sql(query, table_name)
+    try:
+        sql = query_to_sql(query, table_name)
+    except ValueError as e:
+        # Column bhul kore guess na kore, clear error dekhano hoy
+        print("Error:", e)
+        return
 
     # Debug info
     print("Detected intent :", intent)

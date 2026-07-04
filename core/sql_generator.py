@@ -25,14 +25,25 @@ New features (v3):
 - ORDER BY + LIMIT: "top 10 highest salary", "lowest 5 prices"
 - Underscore <-> space column matching (via improved attribute_matcher)
 - Expanded synonym + operator dictionaries
+
+v4 (bug fix — multi-word column jemon "Time Spent on Website (min)",
+"Purchase Amount ($)" bhul kore "Customer ID"-r moto onno column select
+kore felto):
+- _find_agg_column(), _detect_order_limit(), _detect_group_by(),
+  ebong filter matching — shobgulai ekhon match_column()-e SHUDHU EKTA
+  word pathanor bodole find_columns_with_positions() use kore, jeta
+  PURA multi-word column phrase ekshathe match kore.
+- Bhul/dangerous fallback "numeric_columns[0]" shoriye deya hoise —
+  column detect na hole ekhon None thake (bhul column-e query cholar
+  bodole clear error deoya hoy, see query_to_sql).
 """
 
 import re
 
 from operator_detector import detect_operators
-from attribute_matcher import match_column, find_columns_in_text
+from attribute_matcher import find_columns_with_positions
 from value_matcher import extract_numbers, match_categorical_values
-from schema_reader import get_numeric_columns
+from schema_reader import get_numeric_columns, get_text_columns
 
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -72,115 +83,101 @@ def _quote_identifier(name):
     return f'"{escaped}"'
 
 
-def _nearest_numeric_column(ref_pos, words_with_pos, schema,
-                             synonyms_path="knowledge/synonyms.json"):
-    """ref_pos-er kache shobcheye kache numeric column match kore."""
-    numeric_columns = get_numeric_columns(schema)
-    best_col, best_dist = None, None
-    for item in words_with_pos:
-        col = match_column(item["word"], schema, synonyms_path)
-        if col and col in numeric_columns:
-            dist = abs(item["position"] - ref_pos)
-            if best_dist is None or dist < best_dist:
-                best_dist, best_col = dist, col
-    return best_col
+def _nearest_column(ref_pos, column_matches, allowed=None, exclude=None):
+    """
+    ref_pos (character position)-er shobcheye kache-r matched column ta
+    ber kore. allowed dile shudhu shei set-er modhye theke, exclude dile
+    already-filtered column gula bad diye khoja hoy.
+    """
+    candidates = column_matches
+    if allowed is not None:
+        candidates = [c for c in candidates if c["column"] in allowed]
+    if exclude:
+        candidates = [c for c in candidates if c["column"] not in exclude]
+    if not candidates:
+        return None
+    best = min(candidates, key=lambda c: (abs(c["position"] - ref_pos), -c["score"]))
+    return best["column"]
 
 
-def _find_agg_column(question, schema,
-                     synonyms_path="knowledge/synonyms.json"):
+def _find_agg_column(question, column_matches, numeric_columns):
     """
     AVG/MAX/MIN/SUM intent-er jonno kon column-e function apply hobe seta ber kore.
-    Aggregate keyword-er shobcheye kache numeric column ta pick kora hoy.
+    Aggregate keyword-er shobcheye kache numeric column ta pick kora hoy
+    (multi-word column phrase-o ekhon thik moto match hoy — dekho
+    attribute_matcher.find_columns_with_positions()).
+
+    Column detect na hole None return kore — kokhono bhul kore onno
+    column (jemon "Customer ID") default hisebe select kora hoy na.
     """
-    numeric_columns = get_numeric_columns(schema)
     if not numeric_columns:
         return None
 
-    question_lower = question.lower()
-    words_with_pos = [
-        {"word": m.group(), "position": m.start()}
-        for m in re.finditer(r"\S+", question_lower)
-    ]
-
     agg_keyword_pos = None
-    for item in words_with_pos:
-        if item["word"] in _AGGREGATE_KEYWORDS:
-            agg_keyword_pos = item["position"]
+    for m in re.finditer(r"\S+", question.lower()):
+        if m.group() in _AGGREGATE_KEYWORDS:
+            agg_keyword_pos = m.start()
             break
 
-    best_col, best_dist = None, None
-    for item in words_with_pos:
-        col = match_column(item["word"], schema, synonyms_path)
-        if col and col in numeric_columns:
-            dist = (abs(item["position"] - agg_keyword_pos)
-                    if agg_keyword_pos is not None else item["position"])
-            if best_dist is None or dist < best_dist:
-                best_dist, best_col = dist, col
+    numeric_matches = [c for c in column_matches if c["column"] in numeric_columns]
+    if not numeric_matches:
+        return None
 
-    return best_col or (numeric_columns[0] if numeric_columns else None)
+    if agg_keyword_pos is None:
+        best = max(numeric_matches, key=lambda c: c["score"])
+        return best["column"]
+
+    best = min(numeric_matches,
+                key=lambda c: (abs(c["position"] - agg_keyword_pos), -c["score"]))
+    return best["column"]
 
 
-def _detect_group_by(question, schema,
-                     synonyms_path="knowledge/synonyms.json"):
+def _detect_group_by(question, column_matches):
     """
     "average salary by department" -> "Department" column ber kore.
     "count players by club"        -> "Club"
     Return: column name (str) ba None.
     """
-    m = _BY_PATTERN.search(question)
+    m = re.search(r"\bby\b", question, re.IGNORECASE)
     if not m:
         return None
-    candidate = m.group(1).strip()
-    # Candidate phrase theke column match kora
-    # Bigram/trigram o try kora hoy jate "blood group" type catch hoy
-    words = candidate.split()
-    for n in (min(3, len(words)), 2, 1):
-        phrase = " ".join(words[:n])
-        col = match_column(phrase, schema, synonyms_path)
-        if col:
-            return col
-    return None
+    pos = m.end()
+    candidates = [c for c in column_matches if c["position"] >= pos]
+    if not candidates:
+        return None
+    best = min(candidates, key=lambda c: (c["position"], -c["score"]))
+    return best["column"]
 
 
-def _detect_order_limit(question, schema,
-                         synonyms_path="knowledge/synonyms.json"):
+def _detect_order_limit(question, column_matches, numeric_columns):
     """
     "top 10 highest salary"  -> (order_col, "DESC", 10)
     "lowest 5 prices"        -> (order_col, "ASC",  5)
     Return: (column_name, direction, limit) or (None, None, None)
+
+    Column bhul kore guess kora hoy na — na paile order_by None thake,
+    (SQL-e LIMIT thakbe kintu ORDER BY thakbe na).
     """
-    numeric_columns = get_numeric_columns(schema)
+    def _column_near(pos):
+        candidates = [c for c in column_matches
+                      if c["column"] in numeric_columns and c["position"] >= pos]
+        if not candidates:
+            candidates = [c for c in column_matches if c["column"] in numeric_columns]
+        if not candidates:
+            return None
+        best = min(candidates, key=lambda c: (abs(c["position"] - pos), -c["score"]))
+        return best["column"]
 
     top_m = _TOP_PATTERN.search(question)
     if top_m:
         n = int(top_m.group(1))
-        # Find the numeric column closest to / mentioned after "top N"
-        pos = top_m.end()
-        rest = question[pos:]
-        col = None
-        # Try to find explicit column in rest of sentence
-        for m in re.finditer(r"\S+", rest.lower()):
-            c = match_column(m.group(), schema, synonyms_path)
-            if c and c in numeric_columns:
-                col = c
-                break
-        if not col and numeric_columns:
-            col = numeric_columns[0]
+        col = _column_near(top_m.end())
         return col, "DESC", n
 
     bot_m = _BOTTOM_PATTERN.search(question)
     if bot_m:
         n = int(bot_m.group(1))
-        pos = bot_m.end()
-        rest = question[pos:]
-        col = None
-        for m in re.finditer(r"\S+", rest.lower()):
-            c = match_column(m.group(), schema, synonyms_path)
-            if c and c in numeric_columns:
-                col = c
-                break
-        if not col and numeric_columns:
-            col = numeric_columns[0]
+        col = _column_near(bot_m.end())
         return col, "ASC", n
 
     return None, None, None
@@ -198,6 +195,14 @@ def build_query(question, schema, intent,
     filters = []
     filtered_columns = set()
 
+    numeric_columns = set(get_numeric_columns(schema))
+    text_columns = set(get_text_columns(schema))
+
+    # Pura question-e ekbar-e shob column-er match + position ber kore neya hoy
+    # (multi-word phrase soho) — eta pure module e reuse hoy jate bar bar
+    # single-word match_column() na call kore bhul column select na hoy.
+    column_matches = find_columns_with_positions(question, schema, synonyms_path)
+
     # ── Step 1: Categorical filter ────────────────────────────────────────
     for match in match_categorical_values(question, schema):
         col = match["column"]
@@ -210,11 +215,6 @@ def build_query(question, schema, intent,
     all_numbers = extract_numbers(question)
     used_num_ids = set()
 
-    words_with_pos = [
-        {"word": m.group(), "position": m.start()}
-        for m in re.finditer(r"\S+", question.lower())
-    ]
-
     for op in operators:
         symbol = op["symbol"]
         op_pos = op["position"]
@@ -224,13 +224,9 @@ def build_query(question, schema, intent,
 
         # IS NULL / IS NOT NULL
         if symbol in _NULL_OPS:
-            col = _nearest_numeric_column(op_pos, words_with_pos, schema, synonyms_path)
-            if not col:
-                for item in words_with_pos:
-                    c = match_column(item["word"], schema, synonyms_path)
-                    if c and c not in filtered_columns:
-                        col = c
-                        break
+            col = (_nearest_column(op_pos, column_matches,
+                                    allowed=numeric_columns, exclude=filtered_columns)
+                   or _nearest_column(op_pos, column_matches, exclude=filtered_columns))
             if col and col not in filtered_columns:
                 filters.append({"column": col, "operator": symbol})
                 filtered_columns.add(col)
@@ -244,7 +240,8 @@ def build_query(question, schema, intent,
                 key=lambda n: n["position"],
             )
             if len(nums_after) >= 2:
-                col = _nearest_numeric_column(op_pos, words_with_pos, schema, synonyms_path)
+                col = _nearest_column(op_pos, column_matches,
+                                       allowed=numeric_columns, exclude=filtered_columns)
                 if col and col not in filtered_columns:
                     filters.append({
                         "column":   col,
@@ -259,15 +256,15 @@ def build_query(question, schema, intent,
 
         # LIKE
         if symbol in _LIKE_OPS:
-            words_after = [item for item in words_with_pos if item["position"] > op_pos]
+            words_after = [
+                m for m in re.finditer(r"\S+", question.lower())
+                if m.start() > op_pos
+            ]
             if words_after:
-                val = words_after[0]["word"]
-                col = None
-                for item in words_with_pos:
-                    c = match_column(item["word"], schema, synonyms_path)
-                    if c and c not in filtered_columns:
-                        col = c
-                        break
+                val = words_after[0].group()
+                col = (_nearest_column(op_pos, column_matches,
+                                        allowed=text_columns, exclude=filtered_columns)
+                       or _nearest_column(op_pos, column_matches, exclude=filtered_columns))
                 if col and col not in filtered_columns:
                     filters.append({
                         "column":   col,
@@ -287,8 +284,8 @@ def build_query(question, schema, intent,
             if not nums_after:
                 continue
             nearest_num = nums_after[0]
-            col = _nearest_numeric_column(nearest_num["position"],
-                                          words_with_pos, schema, synonyms_path)
+            col = _nearest_column(nearest_num["position"], column_matches,
+                                   allowed=numeric_columns, exclude=filtered_columns)
             if col and col not in filtered_columns:
                 filters.append({
                     "column":   col,
@@ -299,15 +296,15 @@ def build_query(question, schema, intent,
                 used_num_ids.add(id(nearest_num))
 
     # ── Step 3: GROUP BY detection ────────────────────────────────────────
-    group_by_col = _detect_group_by(question, schema, synonyms_path)
+    group_by_col = _detect_group_by(question, column_matches)
 
     # ── Step 4: ORDER BY + LIMIT detection ───────────────────────────────
-    order_col, order_dir, limit = _detect_order_limit(question, schema, synonyms_path)
+    order_col, order_dir, limit = _detect_order_limit(question, column_matches, numeric_columns)
 
     # ── Step 5: Aggregate column ──────────────────────────────────────────
     agg_col = None
     if intent in _AGGREGATE_INTENTS:
-        agg_col = _find_agg_column(question, schema, synonyms_path)
+        agg_col = _find_agg_column(question, column_matches, numeric_columns)
 
     return {
         "intent":    intent,
@@ -352,7 +349,13 @@ def query_to_sql(query, table_name="data"):
         else:
             select_part = "SELECT COUNT(*)"
     elif intent in _AGGREGATE_INTENTS:
-        col = _quote_identifier(agg_column) if agg_column else "*"
+        if not agg_column:
+            raise ValueError(
+                "Kon column-e '" + intent + "' calculate korte hobe eta bujha jayni. "
+                "Doya kore column-er naam ta ektu clear kore jiggesh koro "
+                "(jemon 'average purchase amount' er bodole 'average of Purchase Amount column')."
+            )
+        col = _quote_identifier(agg_column)
         if group_by:
             gb_col = _quote_identifier(group_by)
             select_part = f"SELECT {gb_col}, {intent}({col})"
