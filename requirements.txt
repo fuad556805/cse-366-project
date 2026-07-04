@@ -7,3 +7,13 @@ sqlalchemy
 psycopg2-binary
 pytest
 datasets==2.21.0
+datasets==2.21.0
+flask
+gunicorn
+pandas
+psycopg2-binary
+pytest
+rapidfuzz
+response
+scikit-learn
+sqlalchemy
