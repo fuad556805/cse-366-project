@@ -24,31 +24,116 @@
     .navbar {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       max-width: 900px;
       margin: 0 auto 32px;
       padding-bottom: 16px;
       border-bottom: 1px solid #e5e5e5;
     }
-    .navbar .logo-mark {
+    .navbar .logo {
       display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: #111;
-      color: #fff;
-      font-size: 0.8rem;
+      align-items: baseline;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      flex-shrink: 0;
     }
-    .navbar .logo-text {
-      font-size: 1.05rem;
+    .navbar .logo .lo-nl   { color: #111; }
+    .navbar .logo .lo-2    { color: #999; margin: 0 1px; font-weight: 600; }
+    .navbar .logo .lo-sql  { color: #111; }
+    .navbar .logo .lo-dot  {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      margin-left: 6px;
+      transform: translateY(-6px);
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .navbar .nav-links button {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: #555;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .navbar .nav-links button:hover {
+      background: #ececec;
+      color: #111;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: 12px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.2);
+    }
+    .modal-box h2 {
+      font-size: 1.2rem;
       font-weight: 700;
       color: #111;
-      letter-spacing: -0.01em;
+      margin-bottom: 14px;
     }
+    .modal-box p {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .modal-box ul, .modal-box ol {
+      margin: 0 0 14px 20px;
+      font-size: 0.88rem;
+      color: #444;
+      line-height: 1.7;
+    }
+    .modal-box code {
+      background: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.85em;
+    }
+    .modal-close {
+      display: block;
+      margin-left: auto;
+      margin-top: 8px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .modal-close:hover { background: #333; }
 
     /* ── Header ── */
     .header { margin-bottom: 36px; }
@@ -265,8 +350,63 @@
 
 <!-- Navbar -->
 <div class="navbar">
-  <span class="logo-mark">N2S</span>
-  <span class="logo-text">nl2sql</span>
+  <span class="logo">
+    <span class="lo-nl">nl</span><span class="lo-2">2</span><span class="lo-sql">sql</span><span class="lo-dot"></span>
+  </span>
+  <div class="nav-links">
+    <button id="about-btn" type="button">About</button>
+    <button id="help-btn" type="button">Help</button>
+  </div>
+</div>
+
+<!-- About modal -->
+<div class="modal-overlay" id="about-modal">
+  <div class="modal-box">
+    <h2>About nl2sql</h2>
+    <p>
+      <strong>nl2sql</strong> is a hybrid natural-language-to-SQL tool. It combines a
+      machine-learning intent classifier with rule-based matching to turn plain-English
+      questions into real SQL queries — no coding required.
+    </p>
+    <p>How it works:</p>
+    <ul>
+      <li>Upload any CSV file — the columns and sample values are read automatically.</li>
+      <li>Type a question like <code>"average purchase amount by location"</code>.</li>
+      <li>The AI detects your intent (SELECT / COUNT / AVG / MAX / MIN / SUM), matches
+        the right columns, and builds a safe SQL query.</li>
+      <li>The query runs against your data and results are shown instantly.</li>
+    </ul>
+    <p>No question about your data ever leaves this app — everything runs locally.</p>
+    <button class="modal-close" data-close="about-modal">Close</button>
+  </div>
+</div>
+
+<!-- Help modal -->
+<div class="modal-overlay" id="help-modal">
+  <div class="modal-box">
+    <h2>Help &amp; Tips</h2>
+    <p><strong>1. Upload a dataset</strong></p>
+    <ul>
+      <li>Drag &amp; drop or click to browse a <code>.csv</code> file.</li>
+      <li>The first row must contain column headers.</li>
+    </ul>
+    <p><strong>2. Ask a question</strong></p>
+    <ul>
+      <li><code>show female patients older than 30</code></li>
+      <li><code>average purchase amount by location</code></li>
+      <li><code>top 5 highest salary</code></li>
+      <li><code>count students where district is Dhaka</code></li>
+    </ul>
+    <p><strong>3. Tips for best results</strong></p>
+    <ol>
+      <li>Mention the column name in your question when possible (e.g. "purchase amount", "review score").</li>
+      <li>Use words like <code>average</code>, <code>total</code>, <code>maximum</code>, <code>minimum</code> for aggregates.</li>
+      <li>Use <code>top N</code> / <code>lowest N</code> for ranked results.</li>
+      <li>Use <code>by &lt;column&gt;</code> to group results.</li>
+    </ol>
+    <p>If a question is too ambiguous, the app will show a clear error instead of guessing the wrong column.</p>
+    <button class="modal-close" data-close="help-modal">Close</button>
+  </div>
 </div>
 
 <div class="container">
@@ -564,6 +704,33 @@
   function escHtml(str) {
     return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
+
+  // ── About / Help modals ──
+  function openModal(id) {
+    document.getElementById(id).classList.add("open");
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove("open");
+  }
+
+  document.getElementById("about-btn").addEventListener("click", () => openModal("about-modal"));
+  document.getElementById("help-btn").addEventListener("click", () => openModal("help-modal"));
+
+  document.querySelectorAll(".modal-close").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  });
+
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) closeModal(overlay.id);
+    });
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal-overlay.open").forEach(o => closeModal(o.id));
+    }
+  });
 </script>
 </body>
 </html>
