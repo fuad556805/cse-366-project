@@ -1,3 +1,0 @@
-- [nl2sql-project-constraints](nl2sql-project-constraints.md) — Pure Python CLI only; no web UI, no frameworks; Bengali comments are intentional style
-- [nl2sql-sql-identifier-quoting](nl2sql-sql-identifier-quoting.md) — All SQL identifiers double-quoted in generator; validator + tests must match this format
-- [nl2sql-multiword-column-matching](nl2sql-multiword-column-matching.md) — stopword-aware phrase windowing for multi-word columns; never fall back to numeric_columns[0], raise clear error instead
